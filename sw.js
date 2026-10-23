@@ -1,6 +1,6 @@
 /* Smash Lab service worker: caches the app shell and pose model for offline use.
    Bump VERSION whenever you change any cached file so users get the update. */
-const VERSION = "smashlab-v13";
+const VERSION = "smashlab-v14";
 const CORE = [
   "./",
   "index.html",

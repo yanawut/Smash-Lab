@@ -24,74 +24,11 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
-    <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="true">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
-    <button type="button" role="tab" id="tab-btn-video" aria-controls="tab-video" aria-selected="false" tabindex="-1">วิเคราะห์จากวิดีโอหรือภาพ</button>
+    <button type="button" role="tab" id="tab-btn-video" aria-controls="tab-video" aria-selected="true">วิเคราะห์จากวิดีโอหรือภาพ</button>
+    <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="false" tabindex="-1">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
   </nav>
 
-  <div class="tabpanel" id="tab-smash" role="tabpanel" aria-labelledby="tab-btn-smash">
-    <div class="thesis">
-      <span class="chip bad">ตีที่จุดสูงสุด</span>
-      <span aria-hidden="true">→</span>
-      <span class="chip ok">จุดกระทบต่ำกว่าเล็กน้อย และอยู่ด้านหน้า</span>
-    </div>
-
-  <section class="grid">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>โมเดลจุดกระทบ</h2>
-        <span class="note">มุมมองด้านข้าง · ภาพจำลองอย่างง่าย</span>
-      </div>
-      <div style="overflow-x:auto">
-        <svg id="court" viewBox="0 0 640 300" width="100%" role="img" aria-labelledby="court-t court-d" style="min-width:420px">
-          <title id="court-t">จุดกระทบกับทิศทางลูก</title>
-          <desc id="court-d">เลื่อนตำแหน่งจุดกระทบ แล้วดูว่าลูกพุ่งขึ้น แบน หรือพุ่งลงข้ามเน็ต</desc>
-          <line x1="20" y1="270" x2="630" y2="270" stroke="var(--line)" stroke-width="2"/>
-          <g id="zones"></g>
-          <line x1="520" y1="270" x2="520" y2="196" stroke="var(--muted)" stroke-width="2"/>
-          <line x1="520" y1="196" x2="520" y2="196" stroke="var(--muted)"/>
-          <rect x="516" y="196" width="8" height="4" fill="var(--muted)"/>
-          <text x="520" y="288" text-anchor="middle" font-size="12" fill="var(--muted)">เน็ต</text>
-          <g fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="170" cy="110" r="13"/>
-            <line x1="170" y1="123" x2="168" y2="200"/>
-            <polyline points="140,270 168,200 200,270"/>
-            <polyline points="170,145 140,150 128,128"/>
-          </g>
-          <line id="arm" x1="170" y1="135" x2="170" y2="20" stroke="var(--cork)" stroke-width="3.5" stroke-linecap="round"/>
-          <line id="shuttle-path" x1="0" y1="0" x2="0" y2="0" stroke="var(--cork)" stroke-width="2" stroke-dasharray="6 5"/>
-          <circle id="contact" cx="170" cy="20" r="6" fill="var(--cork)"/>
-          <text x="26" y="40" font-size="12" fill="var(--muted)">หลังศีรษะ</text>
-          <text x="300" y="40" font-size="12" fill="var(--muted)">ด้านหน้า</text>
-        </svg>
-      </div>
-      <div class="slider-row">
-        <label for="theta">ตำแหน่งจุดกระทบ</label>
-        <input id="theta" type="range" min="-20" max="45" step="1" value="18">
-        <span id="theta-v" class="note" style="font-family:var(--f-mono);min-width:48px;text-align:right">+18°</span>
-      </div>
-      <div class="readout">
-        <div><div class="k">โซน</div><div class="v" id="r-zone">–</div></div>
-        <div><div class="k">ทิศลูก</div><div class="v" id="r-angle">–</div></div>
-        <div><div class="k">ผล</div><div class="v" id="r-out">–</div></div>
-      </div>
-      <p class="note">มุมวัดจากแนวตั้งเหนือไหล่ ค่าบวกคือเยื้องไปด้านหน้า โซนสีเขียว (+10° ถึง +30°) คือจุดที่คลิปแนะนำ คือต่ำกว่าจุดสูงสุดเล็กน้อยและอยู่หน้าตัว ตัวเลขเป็นแบบจำลองเพื่อให้เห็นแนวโน้ม ไม่ใช่การวัดจริง</p>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>สรุปคลิป</h2>
-        <a class="note" href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener" style="color:var(--court)">เปิดคลิป ↗</a>
-      </div>
-      <p class="note">“정점에서 쳐라”는 틀렸다 (ที่บอกให้ตีที่จุดสูงสุดนั้นผิด) · full-swing · 13 พ.ค. 2026</p>
-      <ol class="chapters" id="chapters"></ol>
-      <p class="note">สรุปจากชื่อคลิป คำอธิบาย และหัวข้อแต่ละช่วงเวลา ไม่ได้ถอดเสียงพูดในคลิป</p>
-    </div>
-  </section>
-
-  <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
-  </div>
-
-  <div class="tabpanel" id="tab-video" role="tabpanel" aria-labelledby="tab-btn-video" hidden>
+  <div class="tabpanel" id="tab-video" role="tabpanel" aria-labelledby="tab-btn-video">
   <section class="panel" id="video-lab">
     <div class="panel-head">
       <h2 id="vl-title">วิเคราะห์จากวิดีโอหรือภาพ</h2>
@@ -185,6 +122,69 @@
       <div class="prio" id="prio"></div>
     </section>
   </div>
+  </div>
+
+  <div class="tabpanel" id="tab-smash" role="tabpanel" aria-labelledby="tab-btn-smash" hidden>
+    <div class="thesis">
+      <span class="chip bad">ตีที่จุดสูงสุด</span>
+      <span aria-hidden="true">→</span>
+      <span class="chip ok">จุดกระทบต่ำกว่าเล็กน้อย และอยู่ด้านหน้า</span>
+    </div>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>โมเดลจุดกระทบ</h2>
+        <span class="note">มุมมองด้านข้าง · ภาพจำลองอย่างง่าย</span>
+      </div>
+      <div style="overflow-x:auto">
+        <svg id="court" viewBox="0 0 640 300" width="100%" role="img" aria-labelledby="court-t court-d" style="min-width:420px">
+          <title id="court-t">จุดกระทบกับทิศทางลูก</title>
+          <desc id="court-d">เลื่อนตำแหน่งจุดกระทบ แล้วดูว่าลูกพุ่งขึ้น แบน หรือพุ่งลงข้ามเน็ต</desc>
+          <line x1="20" y1="270" x2="630" y2="270" stroke="var(--line)" stroke-width="2"/>
+          <g id="zones"></g>
+          <line x1="520" y1="270" x2="520" y2="196" stroke="var(--muted)" stroke-width="2"/>
+          <line x1="520" y1="196" x2="520" y2="196" stroke="var(--muted)"/>
+          <rect x="516" y="196" width="8" height="4" fill="var(--muted)"/>
+          <text x="520" y="288" text-anchor="middle" font-size="12" fill="var(--muted)">เน็ต</text>
+          <g fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="170" cy="110" r="13"/>
+            <line x1="170" y1="123" x2="168" y2="200"/>
+            <polyline points="140,270 168,200 200,270"/>
+            <polyline points="170,145 140,150 128,128"/>
+          </g>
+          <line id="arm" x1="170" y1="135" x2="170" y2="20" stroke="var(--cork)" stroke-width="3.5" stroke-linecap="round"/>
+          <line id="shuttle-path" x1="0" y1="0" x2="0" y2="0" stroke="var(--cork)" stroke-width="2" stroke-dasharray="6 5"/>
+          <circle id="contact" cx="170" cy="20" r="6" fill="var(--cork)"/>
+          <text x="26" y="40" font-size="12" fill="var(--muted)">หลังศีรษะ</text>
+          <text x="300" y="40" font-size="12" fill="var(--muted)">ด้านหน้า</text>
+        </svg>
+      </div>
+      <div class="slider-row">
+        <label for="theta">ตำแหน่งจุดกระทบ</label>
+        <input id="theta" type="range" min="-20" max="45" step="1" value="18">
+        <span id="theta-v" class="note" style="font-family:var(--f-mono);min-width:48px;text-align:right">+18°</span>
+      </div>
+      <div class="readout">
+        <div><div class="k">โซน</div><div class="v" id="r-zone">–</div></div>
+        <div><div class="k">ทิศลูก</div><div class="v" id="r-angle">–</div></div>
+        <div><div class="k">ผล</div><div class="v" id="r-out">–</div></div>
+      </div>
+      <p class="note">มุมวัดจากแนวตั้งเหนือไหล่ ค่าบวกคือเยื้องไปด้านหน้า โซนสีเขียว (+10° ถึง +30°) คือจุดที่คลิปแนะนำ คือต่ำกว่าจุดสูงสุดเล็กน้อยและอยู่หน้าตัว ตัวเลขเป็นแบบจำลองเพื่อให้เห็นแนวโน้ม ไม่ใช่การวัดจริง</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>สรุปคลิป</h2>
+        <a class="note" href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener" style="color:var(--court)">เปิดคลิป ↗</a>
+      </div>
+      <p class="note">“정점에서 쳐라”는 틀렸다 (ที่บอกให้ตีที่จุดสูงสุดนั้นผิด) · full-swing · 13 พ.ค. 2026</p>
+      <ol class="chapters" id="chapters"></ol>
+      <p class="note">สรุปจากชื่อคลิป คำอธิบาย และหัวข้อแต่ละช่วงเวลา ไม่ได้ถอดเสียงพูดในคลิป</p>
+    </div>
+  </section>
+
+  <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
   </div>
 </div>
 

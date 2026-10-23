@@ -548,10 +548,10 @@ function fillFocus(){$("focus").innerHTML='<option value="">วิเครา�
 fillFocus();
 
 /* tabs */
-const TABS=["smash","video"];
+const TABS=["video","smash"];
 function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="video"&&lastKP) requestAnimationFrame(()=>drawPose(lastKP))}
 TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
-showTab(location.hash==="#video"?"video":"smash");
+showTab(location.hash==="#smash"?"smash":"video");
 
 paintInputs(); analyse(); model();
 })();
