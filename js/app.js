@@ -197,7 +197,7 @@ function drawPose(kp){
   if(okp(S0)&&okp(W0)){const L=dist(S0,W0);const [x0,y0]=P(S0);
     octx.setLineDash([6*dpr,5*dpr]);octx.strokeStyle=hot;octx.lineWidth=2*dpr;octx.beginPath();octx.moveTo(x0,y0);octx.lineTo(x0,(S0.y-L)*sy);octx.stroke();octx.setLineDash([]);
     const th=Math.round(deg(Math.atan2(dirOf(kp)*(W0.x-S0.x),-(W0.y-S0.y))));
-    octx.font=`${13*dpr}px "IBM Plex Mono",monospace`;octx.fillStyle=hot;octx.fillText((th>0?"+":"")+th+"°",x0+8*dpr,(S0.y-L*0.55)*sy);}
+    octx.font=`${14*dpr}px "IBM Plex Mono",monospace`;octx.fillStyle=hot;octx.fillText((th>0?"+":"")+th+"°",x0+8*dpr,(S0.y-L*0.55)*sy);}
 }
 function zoneOf(th){return th<0?"หลังศีรษะ":th<10?"จุดสูงสุด":th<=30?"โซนแนะนำ":"ต่ำ/หน้าเกินไป"}
 function scTheta(th){return th>=10&&th<=30?5:(th>=5&&th<10)||(th>30&&th<=38)?4:(th>=0&&th<5)||(th>38&&th<=45)?3:th>=-10&&th<0?2:1}
