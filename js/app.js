@@ -30,7 +30,7 @@ const S=[
  {id:"s7",n:"ตบแล้วกลับมารับลูกไม่ทัน",m:{minp:2,relax:1,torso:1}}
 ];
 const EX={scores:{throw:2,relax:2,torso:3,seq:2,minp:3,gaze:4,setp:2,lag:2},sym:["s1","s3"]};
-const KEY="smashlab.v1", HKEY="smashlab.hist.v1";
+const KEY="smashlab.v1";
 function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
 let st=load(KEY); let isEx=!st; if(!st) st=JSON.parse(JSON.stringify(EX));
@@ -109,23 +109,6 @@ function onChange(){
 }
 $("factors").addEventListener("change",onChange);
 $("symptoms").addEventListener("change",onChange);
-
-function hist(){
-  const h=load(HKEY)||[]; const el=$("hist");
-  if(!h.length){el.innerHTML='<p class="empty">ยังไม่มีบันทึก ปรับคะแนนให้ตรงกับตัวเอง แล้วกด “บันทึกผลวันนี้” หลังฝึกแต่ละครั้ง</p>';return}
-  el.innerHTML=h.slice(-12).map((r,i,a)=>`<div class="col"><span>${r.s}</span><div class="b${i===a.length-1?" last":""}" style="height:${Math.max(6,r.s*0.7)}px"></div><span>${r.d.slice(5)}</span></div>`).join("");
-}
-$("save").addEventListener("click",()=>{
-  const s=analyse(); const h=load(HKEY)||[]; const d=new Date();
-  const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const i=h.findIndex(r=>r.d===ds); if(i>=0) h[i].s=s; else h.push({d:ds,s});
-  const ok=save(HKEY,h); hist();
-  $("saved-msg").textContent=ok?`บันทึกแล้ว: ${s} คะแนน (${ds})`:"บันทึกไม่ได้ในเบราว์เซอร์นี้ (อาจเปิดโหมดส่วนตัวอยู่)";
-});
-$("reset").addEventListener("click",()=>{
-  st=JSON.parse(JSON.stringify(EX)); isEx=true; try{localStorage.removeItem(KEY)}catch(e){}
-  paintInputs(); analyse(); $("saved-msg").textContent="กลับไปใช้ค่าตัวอย่างแล้ว";
-});
 
 /* contact model */
 const SX=170,SY=135,R=115,NETX=520,NETY=196,GY=270;
@@ -562,7 +545,7 @@ function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on
 TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
 showTab(location.hash==="#video"?"video":"smash");
 
-paintInputs(); analyse(); hist(); model();
+paintInputs(); analyse(); model();
 })();
 
 /* PWA: offline cache + install */
