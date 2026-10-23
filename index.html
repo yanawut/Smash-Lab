@@ -24,7 +24,12 @@
     <p class="lede">นำหลักการจากคลิปสอนมาทำเป็นโมเดล แบบประเมินตัวเอง และแบบฝึก ว่าด้วยจุดกระทบของลูกตบ ซึ่งแรงมาจากการหมุนลำตัวและส่งไม้ไปข้างหน้าเหมือนขว้างของ ไม่ได้มาจากแรงแขน</p>
   </header>
 
-  <div class="tabpanel" id="tab-smash">
+  <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
+    <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="true">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
+    <button type="button" role="tab" id="tab-btn-video" aria-controls="tab-video" aria-selected="false" tabindex="-1">วิเคราะห์จากวิดีโอหรือภาพ</button>
+  </nav>
+
+  <div class="tabpanel" id="tab-smash" role="tabpanel" aria-labelledby="tab-btn-smash">
     <div class="thesis">
       <span class="chip bad">ตีที่จุดสูงสุด</span>
       <span aria-hidden="true">→</span>
@@ -84,6 +89,20 @@
     </div>
   </section>
 
+  <section class="panel">
+    <div class="panel-head"><h2>ความคืบหน้า</h2><span class="note">เก็บไว้ในเบราว์เซอร์นี้เท่านั้น</span></div>
+    <div class="hist" id="hist"></div>
+    <div class="actions">
+      <button id="save" type="button">บันทึกผลวันนี้</button>
+      <button id="reset" class="ghost" type="button">กลับไปใช้ค่าตัวอย่าง</button>
+      <span id="saved-msg" class="note" role="status"></span>
+    </div>
+  </section>
+
+  <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
+  </div>
+
+  <div class="tabpanel" id="tab-video" role="tabpanel" aria-labelledby="tab-btn-video" hidden>
   <section class="panel" id="video-lab">
     <div class="panel-head">
       <h2 id="vl-title">วิเคราะห์จากวิดีโอหรือภาพ</h2>
@@ -144,46 +163,36 @@
     <p class="note">ใช้โมเดลจับท่าทาง MoveNet ที่ทำงานในเครื่อง ไฟล์ถูกเปิดในหน้านี้เท่านั้น ไม่ถูกส่งออกไปที่ใดและไม่ถูกบันทึก ปิดหน้าแล้วหายไป ข้อจำกัด: ภาพ 2 มิติจากมุมเดียว และโมเดลมองไม่เห็นไม้ จึงวัดได้ 5 จาก 8 หัวข้อ (ผ่อนแรง ใช้แรงน้อย และทิ้งไม้ ยังต้องประเมินเอง) ตัวเลขทั้งหมดเป็นค่าประมาณ</p>
   </section>
 
-  <section class="grid2">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>ประเมินตัวเอง</h2>
-        <span id="ex-badge" class="example">ค่าตัวอย่าง · ปรับให้ตรงกับตัวคุณ</span>
+  <div class="stack" id="assess" hidden>
+    <section class="grid2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>ประเมินตัวเอง</h2>
+          <span id="ex-badge" class="example">ค่าตัวอย่าง · ปรับให้ตรงกับตัวคุณ</span>
+        </div>
+        <div class="scale-key"><span>1 = ยังทำไม่ได้</span><span>5 = ทำได้เป็นธรรมชาติ</span></div>
+        <div id="factors"></div>
       </div>
-      <div class="scale-key"><span>1 = ยังทำไม่ได้</span><span>5 = ทำได้เป็นธรรมชาติ</span></div>
-      <div id="factors"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>อาการที่เจอ</h2><span class="note">เลือกได้หลายข้อ</span></div>
-      <div class="sym" id="symptoms"></div>
-    </div>
-  </section>
-
-  <section class="panel" aria-live="polite">
-    <div class="panel-head"><h2>ผลวิเคราะห์</h2><span class="note">คะแนนถ่วงน้ำหนัก + อาการ = ลำดับสิ่งที่ต้องแก้</span></div>
-    <div class="result">
-      <div class="score">
-        <div class="big" id="overall">–</div>
-        <div class="note">คะแนนท่าตบ / 100</div>
-        <div class="lvl" id="level">–</div>
+      <div class="panel">
+        <div class="panel-head"><h2>อาการที่เจอ</h2><span class="note">เลือกได้หลายข้อ</span></div>
+        <div class="sym" id="symptoms"></div>
       </div>
-      <div class="bars" id="bars"></div>
-    </div>
-    <h3>แก้ 3 เรื่องนี้ก่อน</h3>
-    <div class="prio" id="prio"></div>
-  </section>
+    </section>
 
-  <section class="panel">
-    <div class="panel-head"><h2>ความคืบหน้า</h2><span class="note">เก็บไว้ในเบราว์เซอร์นี้เท่านั้น</span></div>
-    <div class="hist" id="hist"></div>
-    <div class="actions">
-      <button id="save" type="button">บันทึกผลวันนี้</button>
-      <button id="reset" class="ghost" type="button">กลับไปใช้ค่าตัวอย่าง</button>
-      <span id="saved-msg" class="note" role="status"></span>
-    </div>
-  </section>
-
-  <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
+    <section class="panel" aria-live="polite">
+      <div class="panel-head"><h2>ผลวิเคราะห์</h2><span class="note">คะแนนถ่วงน้ำหนัก + อาการ = ลำดับสิ่งที่ต้องแก้</span></div>
+      <div class="result">
+        <div class="score">
+          <div class="big" id="overall">–</div>
+          <div class="note">คะแนนท่าตบ / 100</div>
+          <div class="lvl" id="level">–</div>
+        </div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <h3>แก้ 3 เรื่องนี้ก่อน</h3>
+      <div class="prio" id="prio"></div>
+    </section>
+  </div>
   </div>
 </div>
 

@@ -363,6 +363,8 @@ $("btn-apply").addEventListener("click",()=>{
   if(!vScores) return;const ks=Object.keys(vScores);
   ks.forEach(k=>{st.scores[k]=vScores[k]});
   isEx=false;paintInputs();save(KEY,st);analyse();
+  $("assess").hidden=false;
+  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("assess").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});
   vs(`ปรับคะแนน ${ks.length} หัวข้อในแบบประเมินแล้ว: ${ks.map(k=>F.find(f=>f.id===k).n).join(", ")}`);
 });
 
@@ -416,7 +418,7 @@ function renderDrill(){
 }
 $("focus").addEventListener("change",()=>{tally={n:0,ok:0};tallyRun=-1;renderDrill()});
 $("drill-check").addEventListener("change",e=>{const t=e.target;if(!t.matches("input[data-ck]")) return;const id=$("focus").value;ckState[id][+t.dataset.ck]=t.checked;renderDrill();const el=$(t.id);if(el) el.focus()});
-$("prio").addEventListener("click",e=>{const b=e.target.closest("[data-focus]");if(!b) return;$("focus").value=b.dataset.focus;$("focus").dispatchEvent(new Event("change"));
+$("prio").addEventListener("click",e=>{const b=e.target.closest("[data-focus]");if(!b) return;showTab("video");$("focus").value=b.dataset.focus;$("focus").dispatchEvent(new Event("change"));
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("video-lab").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});$("focus").focus({preventScroll:true})});
 
 /* close-up of the grip: loose fingers vs squeeze at contact */
@@ -553,6 +555,12 @@ requestAnimationFrame(animTick);
 
 function fillFocus(){$("focus").innerHTML='<option value="">วิเคราะห์ทุกหัวข้อ</option>'+F.map(f=>`<option value="${f.id}">${f.n}</option>`).join("")}
 fillFocus();
+
+/* tabs */
+const TABS=["smash","video"];
+function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="video"&&lastKP) requestAnimationFrame(()=>drawPose(lastKP))}
+TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
+showTab(location.hash==="#video"?"video":"smash");
 
 paintInputs(); analyse(); hist(); model();
 })();
