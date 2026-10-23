@@ -308,7 +308,7 @@ function drawSpeed(SP,tc){
   $("speed").innerHTML=g;$("speed-wrap").hidden=false;
 }
 function resetVL(){lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
-function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b}
+function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b;$("btn-clear").disabled=b}
 $("media-file").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f) return;
   resetVL();if(objUrl) URL.revokeObjectURL(objUrl);objUrl=URL.createObjectURL(f);
@@ -320,6 +320,14 @@ $("media-file").addEventListener("change",e=>{
     kind="image";vid.pause();vid.hidden=true;vid.removeAttribute("src");img.hidden=false;$("stage-empty").hidden=true;img.src=objUrl;
     img.onload=async()=>{fitOv();setBusy(true);try{const [w,h]=natSize();lastKP=await detect(img,w,h);drawPose(lastKP);runId++;showStatic(lastKP," (ภาพนิ่งวัดได้เฉพาะจุดกระทบและศอก)")}catch(err){vs(err.message||"วิเคราะห์ไม่สำเร็จ")}setBusy(false)};
   }else{kind=null;vs("รองรับเฉพาะไฟล์วิดีโอหรือภาพ")}
+  $("btn-clear").hidden=false;
+});
+$("btn-clear").addEventListener("click",()=>{
+  if(busy) return;thumbTok++;resetVL();
+  vid.onloadeddata=vid.onerror=img.onload=null;vid.pause();vid.removeAttribute("src");vid.load();vid.hidden=true;img.removeAttribute("src");img.hidden=true;
+  if(objUrl){URL.revokeObjectURL(objUrl);objUrl=null}
+  kind=null;$("media-file").value="";$("stage-empty").hidden=false;$("btn-clear").hidden=true;$("assess").hidden=true;setBusy(false);
+  vs("ยังไม่ได้เลือกไฟล์ เลือกคลิปท่าตบจากมุมด้านข้าง หรือภาพนิ่งตอนกระทบลูก");
 });
 $("btn-frame").addEventListener("click",async()=>{
   if(!kind||busy) return;setBusy(true);
