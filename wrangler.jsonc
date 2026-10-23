@@ -1,0 +1,10 @@
+{
+  // Static site served by Cloudflare Workers (assets only, no Worker script).
+  "name": "smash-lab",
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    "directory": "."
+  },
+  // Lets Workers Builds run `wrangler preview` for non-production branches.
+  "previews": {}
+}
