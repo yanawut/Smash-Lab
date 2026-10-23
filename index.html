@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Smash Lab</title>
+<meta name="description" content="แล็บวิเคราะห์ท่าตบและหยอดแบดมินตัน: โมเดลจุดกระทบ วิถีลูก แบบประเมินตัวเอง และวิเคราะห์ท่าจากวิดีโอในเครื่อง">
+<meta name="theme-color" content="#1e7552">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Smash Lab">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">แล็บวิเคราะห์ท่าแบดมินตัน · แต่ละแท็บอิงคลิปสอนหนึ่งคลิป</div>
+    <h1>Smash Lab</h1>
+    <p class="lede">แต่ละแท็บนำหลักการจากคลิปสอนมาทำเป็นโมเดล แบบประเมินตัวเอง และแบบฝึก แท็บแรกว่าด้วยจุดกระทบของลูกตบ ซึ่งแรงมาจากการหมุนลำตัวและส่งไม้ไปข้างหน้าเหมือนขว้างของ ไม่ได้มาจากแรงแขน แท็บที่สองเทียบลูกตบกับลูกหยอดที่ใช้ท่าเตรียมเดียวกัน</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
+    <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="true">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
+    <button type="button" role="tab" id="tab-btn-drop" aria-controls="tab-drop" aria-selected="false" tabindex="-1">ตบกับหยอด <span class="tab-src">Jongnow TH</span></button>
+  </nav>
+
+  <div class="tabpanel" id="tab-smash" role="tabpanel" aria-labelledby="tab-btn-smash">
+    <div class="thesis">
+      <span class="chip bad">ตีที่จุดสูงสุด</span>
+      <span aria-hidden="true">→</span>
+      <span class="chip ok">จุดกระทบต่ำกว่าเล็กน้อย และอยู่ด้านหน้า</span>
+    </div>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>โมเดลจุดกระทบ</h2>
+        <span class="note">มุมมองด้านข้าง · ภาพจำลองอย่างง่าย</span>
+      </div>
+      <div style="overflow-x:auto">
+        <svg id="court" viewBox="0 0 640 300" width="100%" role="img" aria-labelledby="court-t court-d" style="min-width:420px">
+          <title id="court-t">จุดกระทบกับทิศทางลูก</title>
+          <desc id="court-d">เลื่อนตำแหน่งจุดกระทบ แล้วดูว่าลูกพุ่งขึ้น แบน หรือพุ่งลงข้ามเน็ต</desc>
+          <line x1="20" y1="270" x2="630" y2="270" stroke="var(--line)" stroke-width="2"/>
+          <g id="zones"></g>
+          <line x1="520" y1="270" x2="520" y2="196" stroke="var(--muted)" stroke-width="2"/>
+          <line x1="520" y1="196" x2="520" y2="196" stroke="var(--muted)"/>
+          <rect x="516" y="196" width="8" height="4" fill="var(--muted)"/>
+          <text x="520" y="288" text-anchor="middle" font-size="12" fill="var(--muted)">เน็ต</text>
+          <g fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="170" cy="110" r="13"/>
+            <line x1="170" y1="123" x2="168" y2="200"/>
+            <polyline points="140,270 168,200 200,270"/>
+            <polyline points="170,145 140,150 128,128"/>
+          </g>
+          <line id="arm" x1="170" y1="135" x2="170" y2="20" stroke="var(--cork)" stroke-width="3.5" stroke-linecap="round"/>
+          <line id="shuttle-path" x1="0" y1="0" x2="0" y2="0" stroke="var(--cork)" stroke-width="2" stroke-dasharray="6 5"/>
+          <circle id="contact" cx="170" cy="20" r="6" fill="var(--cork)"/>
+          <text x="26" y="40" font-size="12" fill="var(--muted)">หลังศีรษะ</text>
+          <text x="300" y="40" font-size="12" fill="var(--muted)">ด้านหน้า</text>
+        </svg>
+      </div>
+      <div class="slider-row">
+        <label for="theta">ตำแหน่งจุดกระทบ</label>
+        <input id="theta" type="range" min="-20" max="45" step="1" value="18">
+        <span id="theta-v" class="note" style="font-family:var(--f-mono);min-width:48px;text-align:right">+18°</span>
+      </div>
+      <div class="readout">
+        <div><div class="k">โซน</div><div class="v" id="r-zone">–</div></div>
+        <div><div class="k">ทิศลูก</div><div class="v" id="r-angle">–</div></div>
+        <div><div class="k">ผล</div><div class="v" id="r-out">–</div></div>
+      </div>
+      <p class="note">มุมวัดจากแนวตั้งเหนือไหล่ ค่าบวกคือเยื้องไปด้านหน้า โซนสีเขียว (+10° ถึง +30°) คือจุดที่คลิปแนะนำ คือต่ำกว่าจุดสูงสุดเล็กน้อยและอยู่หน้าตัว ตัวเลขเป็นแบบจำลองเพื่อให้เห็นแนวโน้ม ไม่ใช่การวัดจริง</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>สรุปคลิป</h2>
+        <a class="note" href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener" style="color:var(--court)">เปิดคลิป ↗</a>
+      </div>
+      <p class="note">“정점에서 쳐라”는 틀렸다 (ที่บอกให้ตีที่จุดสูงสุดนั้นผิด) · full-swing · 13 พ.ค. 2026</p>
+      <ol class="chapters" id="chapters"></ol>
+      <p class="note">สรุปจากชื่อคลิป คำอธิบาย และหัวข้อแต่ละช่วงเวลา ไม่ได้ถอดเสียงพูดในคลิป</p>
+    </div>
+  </section>
+
+  <section class="panel" id="video-lab">
+    <div class="panel-head">
+      <h2 id="vl-title">วิเคราะห์จากวิดีโอหรือภาพ</h2>
+      <span class="note">ประมวลผลในเบราว์เซอร์ของคุณ · ไม่อัปโหลด ไม่จัดเก็บ</span>
+    </div>
+    <div class="vl-controls">
+      <label class="file-btn">เลือกวิดีโอหรือภาพ<input id="media-file" type="file" accept="video/*,image/*"></label>
+      <div class="opt"><label for="focus" class="note">เรื่องที่กำลังซ้อม</label>
+        <select id="focus"><option value="">วิเคราะห์ทุกหัวข้อ</option></select>
+      </div>
+      <div class="opt"><span class="note">มือที่ตี</span>
+        <div class="seg small" role="radiogroup" aria-label="มือที่ตี">
+          <input type="radio" name="hand" id="hand-r" checked><label for="hand-r">ขวา</label>
+          <input type="radio" name="hand" id="hand-l"><label for="hand-l">ซ้าย</label>
+        </div>
+      </div>
+      <div class="opt"><span class="note">หันหน้าไปทาง</span>
+        <div class="seg small" role="radiogroup" aria-label="ทิศที่หันหน้าในภาพ">
+          <input type="radio" name="face" id="face-a" checked><label for="face-a">อัตโนมัติ</label>
+          <input type="radio" name="face" id="face-r"><label for="face-r">ขวา</label>
+          <input type="radio" name="face" id="face-l"><label for="face-l">ซ้าย</label>
+        </div>
+      </div>
+    </div>
+    <div class="vl-body">
+      <div class="stage" id="stage">
+        <div class="stage-empty" id="stage-empty">
+          <b>ถ่ายแบบนี้จะวิเคราะห์ได้แม่นที่สุด</b>
+          <ul>
+            <li>ตั้งกล้องด้านข้าง ให้ตั้งฉากกับทิศที่ตบ</li>
+            <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
+            <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว</li>
+            <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
+            <li>ถ่าย 60 fps ได้จะดีกว่า</li>
+          </ul>
+        </div>
+        <video id="vid" playsinline muted controls hidden></video>
+        <img id="img" alt="ภาพท่าตบที่เลือก" hidden>
+        <canvas id="ov" aria-hidden="true"></canvas>
+      </div>
+      <div class="vl-side">
+        <div class="actions">
+          <button id="btn-scan" type="button" disabled>สแกนทั้งคลิป</button>
+          <button id="btn-frame" class="ghost" type="button" disabled>วิเคราะห์เฟรมนี้</button>
+          <button id="btn-setc" class="ghost" type="button" hidden>ตั้งเฟรมนี้เป็นจุดกระทบ</button>
+        </div>
+        <p id="vl-status" class="note" role="status">ยังไม่ได้เลือกไฟล์ เลือกคลิปท่าตบจากมุมด้านข้าง หรือภาพนิ่งตอนกระทบลูก</p>
+        <div id="drill-check" aria-live="polite" hidden></div>
+        <div id="metrics"></div>
+        <div id="speed-wrap" hidden>
+          <h3>ความเร็วข้อต่อตามเวลา</h3>
+          <svg id="speed" viewBox="0 0 320 120" width="100%" role="img" aria-label="กราฟความเร็วของสะโพก ไหล่ ศอก และข้อมือ"></svg>
+          <div class="legend"><span><i style="background:var(--muted)"></i>สะโพก</span><span><i style="background:var(--court)"></i>ไหล่</span><span><i style="background:var(--mid)"></i>ศอก</span><span><i style="background:var(--cork)"></i>ข้อมือ</span></div>
+        </div>
+        <button id="btn-apply" type="button" hidden>ใช้ผลนี้ปรับคะแนนในแบบประเมิน</button>
+      </div>
+    </div>
+    <p class="note">ใช้โมเดลจับท่าทาง MoveNet ที่ทำงานในเครื่อง ไฟล์ถูกเปิดในหน้านี้เท่านั้น ไม่ถูกส่งออกไปที่ใดและไม่ถูกบันทึก ปิดหน้าแล้วหายไป ข้อจำกัด: ภาพ 2 มิติจากมุมเดียว และโมเดลมองไม่เห็นไม้ จึงวัดได้ 5 จาก 8 หัวข้อ (ผ่อนแรง ใช้แรงน้อย และทิ้งไม้ ยังต้องประเมินเอง) ตัวเลขทั้งหมดเป็นค่าประมาณ</p>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>ประเมินตัวเอง</h2>
+        <span id="ex-badge" class="example">ค่าตัวอย่าง · ปรับให้ตรงกับตัวคุณ</span>
+      </div>
+      <div class="scale-key"><span>1 = ยังทำไม่ได้</span><span>5 = ทำได้เป็นธรรมชาติ</span></div>
+      <div id="factors"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>อาการที่เจอ</h2><span class="note">เลือกได้หลายข้อ</span></div>
+      <div class="sym" id="symptoms"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-live="polite">
+    <div class="panel-head"><h2>ผลวิเคราะห์</h2><span class="note">คะแนนถ่วงน้ำหนัก + อาการ = ลำดับสิ่งที่ต้องแก้</span></div>
+    <div class="result">
+      <div class="score">
+        <div class="big" id="overall">–</div>
+        <div class="note">คะแนนท่าตบ / 100</div>
+        <div class="lvl" id="level">–</div>
+      </div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <h3>แก้ 3 เรื่องนี้ก่อน</h3>
+    <div class="prio" id="prio"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>ความคืบหน้า</h2><span class="note">เก็บไว้ในเบราว์เซอร์นี้เท่านั้น</span></div>
+    <div class="hist" id="hist"></div>
+    <div class="actions">
+      <button id="save" type="button">บันทึกผลวันนี้</button>
+      <button id="reset" class="ghost" type="button">กลับไปใช้ค่าตัวอย่าง</button>
+      <span id="saved-msg" class="note" role="status"></span>
+    </div>
+  </section>
+
+  <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
+  </div>
+
+  <div class="tabpanel" id="tab-drop" role="tabpanel" aria-labelledby="tab-btn-drop" hidden>
+    <div class="thesis">
+      <span class="chip bad">ง้างคนละแบบ คู่แข่งอ่านออก</span>
+      <span aria-hidden="true">→</span>
+      <span class="chip ok">ท่าเตรียมเหมือนกัน ไปแยกกันที่จังหวะกระทบ</span>
+    </div>
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>โมเดลวิถีลูก: ตบกับหยอด</h2>
+          <span class="note">มุมมองด้านข้าง · คิดแรงต้านอากาศของลูกขนไก่</span>
+        </div>
+        <div class="actions" role="group" aria-label="ตัวอย่างลูก">
+          <button type="button" class="ghost" data-preset="smash">ลูกตบ</button>
+          <button type="button" class="ghost" data-preset="slice">หยอดตัด (เร็ว)</button>
+          <button type="button" class="ghost" data-preset="soft">หยอดช้า</button>
+        </div>
+        <div style="overflow-x:auto">
+          <svg id="traj" viewBox="0 0 640 260" width="100%" role="img" aria-labelledby="traj-t" style="min-width:420px"><title id="traj-t">วิถีลูกจากจุดกระทบข้ามเน็ตไปตกฝั่งตรงข้าม</title></svg>
+        </div>
+        <div class="sliders">
+          <div class="slider-row"><label for="dv">ความเร็วลูกตอนออกจากไม้</label><input id="dv" type="range" min="5" max="70" step="1" value="16"><span id="dv-v" class="note mono">16 m/s</span></div>
+          <div class="slider-row"><label for="da">มุมลูก (บวก = ขึ้น)</label><input id="da" type="range" min="-20" max="20" step="1" value="-2"><span id="da-v" class="note mono">-2°</span></div>
+          <div class="slider-row"><label for="dd">ระยะจุดตีถึงเน็ต</label><input id="dd" type="range" min="2" max="6" step="0.1" value="4.5"><span id="dd-v" class="note mono">4.5 m</span></div>
+        </div>
+        <div class="readout r4">
+          <div><div class="k">ข้ามเน็ตสูง</div><div class="v" id="t-clr">–</div></div>
+          <div><div class="k">ตกห่างเน็ต</div><div class="v" id="t-land">–</div></div>
+          <div><div class="k">เวลาถึงพื้น</div><div class="v" id="t-time">–</div></div>
+          <div><div class="k">ผล</div><div class="v" id="t-out">–</div></div>
+        </div>
+        <p class="note">จุดตีสูง 2.6 ม. เน็ตสูง 1.55 ม. เส้นเสิร์ฟสั้นห่างเน็ต 1.98 ม. แรงต้านอากาศคำนวณจากความเร็วปลายของลูกขนไก่ราว 6.8 ม./วินาที ลูกจึงช้าลงเร็วมากหลังออกจากไม้ หยอดที่ดีคือข้ามเน็ตต่ำ (ไม่เกิน 50 ซม.) และตกก่อนเส้นเสิร์ฟสั้น ตัวเลขเป็นแบบจำลองเพื่อให้เห็นแนวโน้ม</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>สรุปคลิป</h2>
+          <a class="note" href="https://www.youtube.com/watch?v=PdVBniVEkxQ" target="_blank" rel="noopener" style="color:var(--court)">เปิดคลิป ↗</a>
+        </div>
+        <p class="note">เทคนิคการตบและหยอด · Jongnow TH (โค้ชป๊อป, JONGNOW Tips &amp; Tricks) · 7 มิ.ย. 2026</p>
+        <ul class="keypts">
+          <li><b>สอนทั้งลูกตบและลูกหยอด</b><span>สองลูกนี้ใช้ท่าเตรียมชุดเดียวกัน</span></li>
+          <li><b>ฟุตเวิร์คและการใช้มือ</b><span>ไปให้ถึงลูกก่อน แล้วค่อยใช้มือเลือกว่าจะตบหรือหยอด</span></li>
+          <li><b>ฝึกทีละส่วน ตามระดับตัวเอง</b><span>ดูการสาธิต แล้วแยกฝึกเท้ากับมือก่อนนำมารวมกัน</span></li>
+          <li><b>อยากเน้นฟุตเวิร์ค</b><span>คำอธิบายคลิปแนะนำให้ดูคลิปของโค้ชเคย์ต่อ</span></li>
+        </ul>
+        <p class="note">คลิปไม่มีหัวข้อแยกช่วงเวลา และผมเปิดฟังเสียงในคลิปไม่ได้ ใจความด้านบนจึงมาจากคำอธิบายคลิป ส่วนเทคนิคในแท็บนี้ใช้หลักการโค้ชทั่วไปของลูกตบและลูกหยอด ควรดูคลิปเทียบไปด้วย</p>
+        <div class="anim-slot" data-anim-slot="drop"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>ตบกับหยอด ต่างกันตรงไหน</h2><span class="note">ยิ่งเหมือนกันนานเท่าไร คู่แข่งยิ่งอ่านช้า</span></div>
+      <div style="overflow-x:auto">
+        <table class="cmp">
+          <thead><tr><th>ช่วง</th><th>ลูกตบ</th><th>ลูกหยอด</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>ฟุตเวิร์ค</td><td>ถอยไปอยู่หลังลูกด้วยก้าวสไลด์หรือก้าวไขว้ ตัวตะแคง</td><td>เหมือนลูกตบ</td><td><span class="pill g">เหมือน</span></td></tr>
+            <tr><td>ท่าง้าง</td><td>ศอกสูง หัวไม้ตกหลัง แขนอีกข้างชี้ลูก</td><td>เหมือนลูกตบ</td><td><span class="pill g">เหมือน</span></td></tr>
+            <tr><td>จุดกระทบ</td><td>สูงและอยู่หน้าตัว</td><td>จุดเดียวกับลูกตบ</td><td><span class="pill g">เหมือน</span></td></tr>
+            <tr><td>ความเร็วแขน</td><td>เร่งเต็มที่ตรงจุดกระทบ</td><td>เหวี่ยงมาเร็วเท่ากัน แต่ชะลอช่วงสุดท้ายก่อนกระทบ</td><td><span class="pill b">ต่าง</span></td></tr>
+            <tr><td>หน้าไม้</td><td>ตรง เฉียงลง</td><td>ตัดลูก (slice) หรือหน้าไม้ตรงแต่ดันเบา</td><td><span class="pill b">ต่าง</span></td></tr>
+            <tr><td>วิถีลูก</td><td>พุ่งลงชัน ลึกถึงกลางหรือท้ายคอร์ท</td><td>ข้ามเน็ตเรี่ย ตกก่อนเส้นเสิร์ฟสั้น</td><td><span class="pill b">ต่าง</span></td></tr>
+            <tr><td>หลังตี</td><td>ก้าวตามไปข้างหน้า พร้อมรับลูกตอบ</td><td>กลับกลางคอร์ทเร็ว หรือตามขึ้นไปดักหน้าเน็ต</td><td><span class="pill m">ขึ้นกับเกม</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div id="vl-slot-drop"></div>
+
+    <section class="grid2">
+      <div class="panel">
+        <div class="panel-head"><h2>ประเมินลูกหยอดของตัวเอง</h2><span id="d-ex-badge" class="example">ค่าตัวอย่าง · ปรับให้ตรงกับตัวคุณ</span></div>
+        <div class="scale-key"><span>1 = ยังทำไม่ได้</span><span>5 = ทำได้เป็นธรรมชาติ</span></div>
+        <div id="d-factors"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>อาการที่เจอ</h2><span class="note">เลือกได้หลายข้อ</span></div>
+        <div class="sym" id="d-symptoms"></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <div class="panel-head"><h2>ผลวิเคราะห์ลูกหยอด</h2><span class="note">คะแนนถ่วงน้ำหนัก + อาการ = ลำดับสิ่งที่ต้องแก้</span></div>
+      <div class="result">
+        <div class="score"><div class="big" id="d-overall">–</div><div class="note">คะแนนลูกหยอด / 100</div><div class="lvl" id="d-level">–</div></div>
+        <div class="bars" id="d-bars"></div>
+      </div>
+      <h3>แก้ 3 เรื่องนี้ก่อน</h3>
+      <div class="prio" id="d-prio"></div>
+    </section>
+
+    <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=PdVBniVEkxQ" target="_blank" rel="noopener">เทคนิคการตบและหยอด — Jongnow TH</a>. แบบจำลองวิถีลูก น้ำหนักคะแนน และแบบฝึก เป็นการตีความตามหลักการโค้ชทั่วไปเพื่อใช้ฝึก ไม่ได้ถอดจากคำพูดในคลิป</p>
+  </div>
+</div>
+
+<script src="vendor/tf.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
