@@ -159,7 +159,7 @@ $("theta").addEventListener("input",model);
 
 /* video / image pose analysis — runs locally, nothing stored */
 const vid=$("vid"),img=$("img"),ov=$("ov"),octx=ov.getContext("2d");
-let poseNet=null,kind=null,objUrl=null,frames=null,cIdx=null,lastKP=null,vScores=null,busy=false,lastM=null,runId=0,tallyRun=-1,tally={n:0,ok:0},vlMode="smash";
+let poseNet=null,kind=null,objUrl=null,frames=null,cIdx=null,lastKP=null,vScores=null,busy=false,lastM=null,runId=0,tallyRun=-1,tally={n:0,ok:0};
 const EDGES=[[5,6],[5,7],[7,9],[6,8],[8,10],[5,11],[6,12],[11,12],[11,13],[13,15],[12,14],[14,16]];
 const C192=document.createElement("canvas");C192.width=C192.height=192;const c192=C192.getContext("2d",{willReadFrequently:true});
 const vs=m=>{$("vl-status").textContent=m};
@@ -231,7 +231,6 @@ function staticMetrics(kp){
 function showStatic(kp,suffix){
   const m=staticMetrics(kp);
   if(!m){$("metrics").innerHTML="";vs("มองไม่เห็นไหล่หรือข้อมือข้างที่ตีชัดพอ ลองภาพที่เห็นทั้งตัวจากด้านข้าง หรือเปลี่ยนมือที่ตี");$("btn-apply").hidden=true;lastM=null;renderDrill();return}
-  if(vlMode==="drop"){dropStatic(m,suffix);return}
   const s=scTheta(m.th),thr=Math.round(m.th);
   let h=row("จุดกระทบ (มุมแขนจากแนวตั้ง)",`${thr>0?"+":""}${thr}°`,s,`${zoneOf(m.th)} · คลิปแนะนำให้กระทบต่ำกว่าจุดสูงสุดเล็กน้อยและอยู่หน้าตัว (ราว +10° ถึง +30°)`);
   if(m.el!=null){const e=Math.round(m.el),es=e>=150?5:e>=130?3:2;h+=row("ศอกตอนกระทบ",`${e}°`,es,e>=150?"แขนเหยียดเกือบสุด":e>=130?"ศอกงออยู่บ้าง":"ศอกงอมาก มักเกิดจากลูกเลยตัวหรือจุดกระทบชิดตัวเกินไป")}
@@ -289,10 +288,10 @@ function scanAnalyse(){
   const sp=key=>frames.map((f,i)=>{if(i===0||i===n-1) return 0;const p=get(frames[i-1].kp,key),q=get(frames[i+1].kp,key);if(!okp(p)||!okp(q)) return 0;return dist(p,q)/(frames[i+1].t-frames[i-1].t)/T});
   const smooth=arr=>arr.map((v,i)=>(arr[Math.max(0,i-1)]+v+arr[Math.min(arr.length-1,i+1)])/3);
   const SP={hip:smooth(sp("hip")),sh:smooth(sp("sh")),el:smooth(sp("el")),wr:smooth(sp("wr"))};
-  if(cIdx==null){if(vlMode==="drop"){let best=1e9,bi=0;frames.forEach((f,ix)=>{const w=f.kp[a.wr];if(okp(w)&&w.y<best){best=w.y;bi=ix}});cIdx=bi}else{let best=-1,bi=0;frames.forEach((f,i)=>{const k=f.kp;const above=okp(k[a.wr])&&okp(k[a.sh])&&k[a.wr].y<k[a.sh].y;const v=SP.wr[i]*(above?1:0.4);if(v>best){best=v;bi=i}});cIdx=bi}}
+  if(cIdx==null){let best=-1,bi=0;frames.forEach((f,i)=>{const k=f.kp;const above=okp(k[a.wr])&&okp(k[a.sh])&&k[a.wr].y<k[a.sh].y;const v=SP.wr[i]*(above?1:0.4);if(v>best){best=v;bi=i}});cIdx=bi}
   const c=cIdx,tc=frames[c].t,kc=frames[c].kp,dir=dirOf(kc);
   const inW=(lo,hi)=>frames.map((f,i)=>i).filter(i=>frames[i].t>=tc+lo&&frames[i].t<=tc+hi);
-  const st0=staticMetrics(kc);if(vlMode==="drop") return dropScan({a,n,T,SP,c,tc,dir,inW,st0});const out=[];const sc={};const M={src:"scan"};
+  const st0=staticMetrics(kc);const out=[];const sc={};const M={src:"scan"};
   if(st0){const s=scTheta(st0.th),thr=Math.round(st0.th);sc.setp=s;M.th=st0.th;M.el=st0.el;out.push(row("จุดกระทบ",`${thr>0?"+":""}${thr}°`,s,`${zoneOf(st0.th)} · มุมแขนจากแนวตั้งที่เฟรมกระทบ (แนะนำ +10° ถึง +30°)`))}
   const W1=frames[Math.max(0,c-1)].kp[a.wr],W2=frames[Math.min(n-1,c+1)].kp[a.wr];
   if(okp(W1)&&okp(W2)){const phi=Math.round(deg(Math.atan2(-(W2.y-W1.y),dir*(W2.x-W1.x))));const s=phi<=0?5:phi<=15?4:phi<=30?3:phi<=50?2:1;sc.throw=s;M.phi=phi;
@@ -362,7 +361,6 @@ vid.addEventListener("play",()=>{octx.clearRect(0,0,ov.width,ov.height)});
 window.addEventListener("resize",()=>{if(lastKP) drawPose(lastKP)});
 $("btn-apply").addEventListener("click",()=>{
   if(!vScores) return;const ks=Object.keys(vScores);
-  if(vlMode==="drop"){ks.forEach(k=>{dst.scores[k]=vScores[k]});dIsEx=false;dPaint();save(DKEY,dst);dAnalyse();vs(`ปรับคะแนน ${ks.length} หัวข้อในแบบประเมินลูกหยอดแล้ว: ${ks.map(k=>DF.find(f=>f.id===k).n).join(", ")}`);return}
   ks.forEach(k=>{st.scores[k]=vScores[k]});
   isEx=false;paintInputs();save(KEY,st);analyse();
   vs(`ปรับคะแนน ${ks.length} หัวข้อในแบบประเมินแล้ว: ${ks.map(k=>F.find(f=>f.id===k).n).join(", ")}`);
@@ -376,8 +374,6 @@ const CKL={
   minp:["ตบด้วยแรงราว 60–80% ไม่ใช่สุดแรง","ตบแล้วตัวไม่เสียหลัก กลับมาพร้อมรับได้","ลูกยังพุ่งลงชัน แม้ไม่ได้ออกแรงเต็มที่"]};
 const ckState={relax:[false,false,false],minp:[false,false,false]};
 const VL={pass:"ถูกต้อง",near:"ใกล้แล้ว",fail:"ยังไม่ถูก",na:"รอผลวิเคราะห์"};
-F.forEach(f=>{const o=document.createElement("option");o.value=f.id;o.textContent=f.n;$("focus").appendChild(o)});
-const judgeSmash=(id,M)=>judge(id,M);
 function judge(id,M){
   const needScan=()=>({v:"na",meas:"เรื่องนี้ต้องใช้วิดีโอ",cue:`อัปโหลด${UPL[id]} แล้วกด “สแกนทั้งคลิป”`});
   if(!M) return {v:"na",meas:"ยังไม่ได้วิเคราะห์ไฟล์",cue:`อัปโหลด${UPL[id]}${kind==="video"?" แล้วกด “สแกนทั้งคลิป”":""}`};
@@ -408,15 +404,15 @@ function judge(id,M){
 function renderDrill(){
   const id=$("focus").value,box=$("drill-check");
   if(!id){box.hidden=true;box.innerHTML="";return}
-  const f=F.find(x=>x.id===id)||DF.find(x=>x.id===id);box.hidden=false;let v,meas,target="",cue,extra="",foot;
+  const f=F.find(x=>x.id===id);box.hidden=false;let v,meas,target="",cue,extra="",foot;
   if(CKL[id]){const n=ckState[id].filter(Boolean).length;v=n===3?"pass":n===2?"near":n===0?"na":"fail";
     meas="ภาพจากกล้องวัดเรื่องนี้ไม่ได้ ใช้เช็คลิสต์หลังซ้อมแต่ละเซต";cue=v==="pass"?"ทำได้ครบทุกข้อ":v==="na"?"ซ้อมแล้วติ๊กข้อที่ทำได้":"ดูข้อที่ยังไม่ได้ติ๊ก แล้วซ้อมเซตต่อไปโดยเน้นข้อนั้น";
     extra=`<div class="ck">${CKL[id].map((t,i)=>`<label for="ck-${id}-${i}"><input type="checkbox" id="ck-${id}-${i}" data-ck="${i}"${ckState[id][i]?" checked":""}><span>${t}</span></label>`).join("")}</div>`;
     foot="เช็คลิสต์ไม่ถูกบันทึก";
-  }else{const j=vlMode==="drop"?judgeDrop(id,lastM):judge(id,lastM);v=j.v;meas=j.meas;target=j.target||"";cue=j.cue;
+  }else{const j=judge(id,lastM);v=j.v;meas=j.meas;target=j.target||"";cue=j.cue;
     if(v!=="na"&&lastM&&runId!==tallyRun){tallyRun=runId;tally.n++;if(v==="pass") tally.ok++}
     foot=`ต้องใช้: ${NEED[id]} · ตรวจไปแล้ว ${tally.n} ครั้งในรอบนี้ ถูกต้อง ${tally.ok} ครั้ง (ไม่บันทึก หายเมื่อปิดหน้า)`;}
-  box.innerHTML=`<div class="dc-head"><div><div class="eyebrow">ตรวจท่าซ้อม</div><h3>${f.n}</h3></div><span class="verdict v-${v}">${VL[v]}</span></div>${meas?`<p class="meas">${meas}${target?` · เป้าหมาย ${target}`:""}</p>`:""}<p class="cue">${cue}</p>${extra}${id==="relax"?gripHTML():""}${POSE[id]?animHTML(id)+`<div class="demo">${pair(id,"dc")}</div>`:animHTML("drop")}<p class="tally">${foot}</p>`;
+  box.innerHTML=`<div class="dc-head"><div><div class="eyebrow">ตรวจท่าซ้อม</div><h3>${f.n}</h3></div><span class="verdict v-${v}">${VL[v]}</span></div>${meas?`<p class="meas">${meas}${target?` · เป้าหมาย ${target}`:""}</p>`:""}<p class="cue">${cue}</p>${extra}${id==="relax"?gripHTML():""}${animHTML(id)}<div class="demo">${pair(id,"dc")}</div><p class="tally">${foot}</p>`;
 }
 $("focus").addEventListener("change",()=>{tally={n:0,ok:0};tallyRun=-1;renderDrill()});
 $("drill-check").addEventListener("change",e=>{const t=e.target;if(!t.matches("input[data-ck]")) return;const id=$("focus").value;ckState[id][+t.dataset.ck]=t.checked;renderDrill();const el=$(t.id);if(el) el.focus()});
@@ -460,17 +456,7 @@ const KF={
   {hip:[76,100],s:[72,63],h:[69,49],e:[90,54],w:[80,40],r:[60,76],o:[98,34]},
   {hip:[77,100],s:[73,63],h:[70,48],e:[82,42],w:[78,26],r:[74,6],o:[96,40]},
   {hip:[78,100],s:[74,63],h:[71,49],e:[76,44],w:[72,28],r:[66,10],o:[92,60]},
-  {hip:[80,100],s:[77,63],h:[75,49],e:[88,46],w:[100,38],r:[118,30],o:[86,78]}],
- drop:[
-  {hip:[76,100],s:[72,63],h:[69,49],e:[90,54],w:[80,40],r:[60,76],o:[98,34]},
-  {hip:[84,100],s:[80,62],h:[80,48],e:[100,44],w:[92,40],r:[76,64],o:[94,72]},
-  {hip:[90,100],s:[88,62],h:[92,48],e:[95,45],w:[101,29],r:[108,12],o:[82,80]},
-  {hip:[92,100],s:[90,62],h:[94,48],e:[100,52],w:[108,40],r:[122,30],o:[84,78]}],
- dropbad:[
-  {hip:[80,100],s:[78,63],h:[78,49],e:[92,56],w:[100,46],r:[112,34],o:[90,70]},
-  {hip:[81,100],s:[79,63],h:[79,49],e:[93,54],w:[101,44],r:[113,31],o:[90,70]},
-  {hip:[82,100],s:[80,63],h:[80,49],e:[94,50],w:[104,38],r:[116,24],o:[90,72]},
-  {hip:[83,100],s:[81,63],h:[81,49],e:[96,52],w:[106,42],r:[120,32],o:[90,74]}]};
+  {hip:[80,100],s:[77,63],h:[75,49],e:[88,46],w:[100,38],r:[118,30],o:[86,78]}]};
 const SEG=[[0,0,450,0],[0,1,380,1],[1,2,170,2],[2,3,320,3],[3,3,450,3],[3,0,650,0]];
 const SEG_T=SEG.reduce((a,s)=>a+s[2],0),T_HIT=SEG[0][2]+SEG[1][2]+SEG[2][2],T_S1=SEG[0][2];
 const ANIMS={
@@ -481,12 +467,11 @@ const ANIMS={
  minp:{bad:"good",trail:1,good:["ง้างแบบผ่อนคลาย","ใช้แรงราว 70%","หัวไม้เร็วที่สุดตรงจุดกระทบ","ตัวยังทรงตัวได้ พร้อมรับลูกต่อ"],badP:["ตั้งใจฟาดสุดแรง","ทั้งตัวเกร็ง","หัวไม้ไม่เร็วขึ้นแม้ออกแรงมาก","ตัวเสียหลัก กลับมารับไม่ทัน"]},
  gaze:{bad:"good",good:["มองลูกตั้งแต่ลูกเริ่มตก","ศีรษะนิ่ง สายตาตามลูก","มองลูกจนถึงจังหวะกระทบ","ค่อยมองตามทิศลูก"],badP:["มองลูก","หันไปมองไม้ หรือเงยหน้า","ละสายตาก่อนกระทบ","ตีพลาด หรือลูกออกข้าง"]},
  setp:{bad:"bad",good:["เข้าไปอยู่ใต้ลูกก่อน","รอให้ลูกตกลงมา","กระทบในโซนหน้าตัว (วงสีเขียว)","ลูกพุ่งลงข้ามเน็ต"],badP:["ไปถึงลูกช้า","ลูกตกเลยจุดตี","กระทบเหนือหรือหลังศีรษะ","ลูกแบนหรือลอย"]},
- drop:{title:"หยอดด้วยท่าเตรียมเดียวกับลูกตบ",goodSet:"drop",bad:"dropbad",shot:"drop",good:["ง้างเหมือนจะตบ ศอกสูง หัวไม้ตกหลัง","หมุนตัวและเหวี่ยงมาเหมือนลูกตบ","ชะลอหน้าไม้ตรงจุดกระทบ","ลูกข้ามเน็ตเรี่ยแล้วตกสั้น"],badP:["ไม่ง้างไม้ ไม้ค้างอยู่ข้างหน้า","ตัวไม่หมุน คู่แข่งเห็นว่าจะหยอด","ดันลูกเบา ๆ","คู่แข่งวิ่งมารอที่หน้าเน็ต"]},
  lag:{bad:"good",trail:1,good:["หัวไม้ตกหลัง ศอกสูง","ศอกนำขึ้นไปก่อน ไม้ยังค้างอยู่ข้างหลัง","ไม้สะบัดตามมา เร็วที่สุดตรงจุดกระทบ","ตามข้ามตัวลงมา"],badP:["ไม้ตั้งตรงตามแนวแขน","แขนกับไม้ขึ้นไปพร้อมกัน","ไม่มีจังหวะสะบัด","ลูกช้า ไม่มีน้ำหนัก"]}};
 const reduceMo=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const AN={mode:"good",slow:false,playing:!reduceMo,clock:reduceMo?T_HIT:0,last:null,trails:{}};
 function animHTML(id){
-  if(!ANIMS[id]) return "";const nm=ANIMS[id].title||F.find(x=>x.id===id).n;
+  if(!ANIMS[id]) return "";const nm=F.find(x=>x.id===id).n;
   return `<div class="anim" data-anim="${id}"><span class="an-title">ภาพเคลื่อนไหว: ${nm}</span>
   <div class="anim-ctl"><button type="button" data-an="good" aria-pressed="${AN.mode==="good"}">ท่าถูก</button><button type="button" data-an="bad" aria-pressed="${AN.mode==="bad"}">ท่าผิด</button><button type="button" data-an="slow" aria-pressed="${AN.slow}">ช้า ×3</button><button type="button" data-an="play" aria-pressed="${!AN.playing}">${AN.playing?"หยุด":"เล่น"}</button></div>
   <svg viewBox="0 0 220 160" role="img" aria-label="หุ่นสาธิต: ${nm}"></svg>
@@ -500,7 +485,7 @@ function poseAt(set,tc){
 const tri=(x,c,w)=>Math.max(0,1-Math.abs(x-c)/w);
 function gauge(label,v,col){const f=n=>n.toFixed(1);return `<text x="122" y="15" font-size="10" fill="var(--muted)">${label}</text><rect x="122" y="19" width="80" height="7" rx="3.5" fill="var(--line)"/><rect x="122" y="19" width="${f(80*Math.max(0.04,Math.min(1,v)))}" height="7" rx="3.5" fill="${col}"/>`}
 function frameSVG(id,tc){
-  const cfg=ANIMS[id],good=AN.mode==="good",set=good?(cfg.goodSet||"good"):cfg.bad,c=good?"var(--court)":"var(--warn)",f=n=>n.toFixed(1);
+  const cfg=ANIMS[id],good=AN.mode==="good",set=good?"good":cfg.bad,c=good?"var(--court)":"var(--warn)",f=n=>n.toFixed(1);
   const L=(a,b,col,w,extra)=>`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${extra||""}/>`;
   const {P,ph,seg}=poseAt(set,tc);
   if(id==="lag"&&!good){const d=[P.w[0]-P.e[0],P.w[1]-P.e[1]],n=Math.hypot(...d)||1;P.r=[P.w[0]+d[0]/n*22,P.w[1]+d[1]/n*22]}
@@ -521,7 +506,6 @@ function frameSVG(id,tc){
   g+=`<ellipse cx="${f(P.r[0])}" cy="${f(P.r[1])}" rx="5" ry="9" transform="rotate(${f(ang)} ${f(P.r[0])} ${f(P.r[1])})" fill="none" stroke="var(--cork)" stroke-width="2"/>`;
   let sh=null;
   if(tc>=T_S1&&tc<=T_HIT){const k=(tc-T_S1)/(T_HIT-T_S1);sh=[cp[0]+12*(1-k),-12+(cp[1]+12)*k]}
-  else if(cfg.shot==="drop"&&tc>T_HIT&&tc<T_HIT+(good?1000:1300)){const k=(tc-T_HIT)/(good?1000:1300),p1=[200,40],p2=[218,150];sh=[(1-k)*(1-k)*cp[0]+2*(1-k)*k*p1[0]+k*k*p2[0],(1-k)*(1-k)*cp[1]+2*(1-k)*k*p1[1]+k*k*p2[1]]}
   else if(tc>T_HIT&&tc<T_HIT+700){const a=good?0.45:set==="bad"?-0.08:id==="gaze"?0.05:0.15,sp=good?0.32:0.22,dt=tc-T_HIT;sh=[cp[0]+Math.cos(a)*dt*sp,Math.min(146,cp[1]+Math.sin(a)*dt*sp)]}
   if(sh&&sh[0]<214) g+=`<circle cx="${f(sh[0])}" cy="${f(sh[1])}" r="3.5" fill="var(--cork-soft)" stroke="var(--cork)" stroke-width="1.5"/>`;
   if(id==="relax"){const v=good?0.18+0.72*tri(tc,T_HIT,110):0.92;g+=gauge("แรงบีบด้าม",v,v>0.6?(good?"var(--court)":"var(--warn)"):"var(--court)");
@@ -567,158 +551,8 @@ document.addEventListener("click",e=>{
 });
 requestAnimationFrame(animTick);
 
-/* tabs */
-const TABS=["smash","drop"];
-function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="drop") traj();setVLMode(t==="drop"?"drop":"smash")}
-TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
-
-/* drop tab: trajectory model with shuttle drag */
-const G=9.81,VT=6.8,KD=G/(VT*VT),HC=2.6,NETH=1.55,SSL=1.98,HALF=6.7;
-function simShot(v0,adeg,d){
-  const a=adeg*Math.PI/180;let x=0,y=HC,vx=v0*Math.cos(a),vy=v0*Math.sin(a),t=0,net=null,vnet=null;const pts=[[0,HC]],dt=0.002;
-  while(y>0&&t<5&&x<d+HALF+1.5){const v=Math.hypot(vx,vy),px=x,py=y;x+=vx*dt;y+=vy*dt;vx+=-KD*v*vx*dt;vy+=(-G-KD*v*vy)*dt;t+=dt;
-    if(net==null&&px<d&&x>=d){const k=(d-px)/(x-px);net=py+(y-py)*k;vnet=v;if(net<NETH){pts.push([d,net]);return {pts,net,vnet,hitNet:true,land:null,t}}}
-    if(Math.round(t/dt)%10===0) pts.push([x,Math.max(0,y)])}
-  pts.push([x,Math.max(0,y)]);return {pts,net,vnet,hitNet:false,land:x-d,t};
-}
-const PRESET={smash:[60,-9],slice:[16,-2],soft:[12,6]};
-function traj(){
-  const v0=+$("dv").value,a=+$("da").value,d=+$("dd").value;
-  $("dv-v").textContent=`${v0} m/s · ${Math.round(v0*3.6)} km/h`;$("da-v").textContent=(a>0?"+":"")+a+"°";$("dd-v").textContent=d.toFixed(1)+" m";
-  const r=simShot(v0,a,d),W=640,X0=30,span=d+HALF+0.6,sx=(W-50)/span,GY=236,sy=52,X=m=>X0+m*sx,Y=m=>GY-m*sy,f=n=>n.toFixed(1);
-  let g=`<rect x="${f(X(d))}" y="${GY}" width="${f(SSL*sx)}" height="10" fill="var(--court-soft)"/>`;
-  g+=`<line x1="${f(X(-0.4))}" y1="${GY}" x2="${f(X(d+HALF))}" y2="${GY}" stroke="var(--line)" stroke-width="2"/>`;
-  [[d+SSL,"เส้นเสิร์ฟสั้น"],[d+HALF,"เส้นหลัง"]].forEach(([m,l])=>{g+=`<line x1="${f(X(m))}" y1="${GY}" x2="${f(X(m))}" y2="${GY+8}" stroke="var(--muted)"/><text x="${f(X(m))}" y="${GY+21}" font-size="11" text-anchor="middle" fill="var(--muted)">${l}</text>`});
-  g+=`<line x1="${f(X(d))}" y1="${GY}" x2="${f(X(d))}" y2="${f(Y(NETH))}" stroke="var(--ink)" stroke-width="2.5"/><text x="${f(X(d))}" y="${GY+21}" font-size="11" text-anchor="middle" fill="var(--muted)">เน็ต</text>`;
-  g+=`<line x1="${f(X(d))}" y1="${f(Y(NETH+0.5))}" x2="${f(X(d+SSL))}" y2="${f(Y(NETH+0.5))}" stroke="var(--court)" stroke-dasharray="4 4"/><text x="${f(X(d+SSL)+6)}" y="${f(Y(NETH+0.5)+4)}" font-size="10.5" fill="var(--court)">เพดานหยอดที่ดี +50 ซม.</text>`;
-  g+=`<g fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"><circle cx="${X(0)-6}" cy="${f(Y(1.75))}" r="7"/><line x1="${X(0)-6}" y1="${f(Y(1.62))}" x2="${X(0)-6}" y2="${f(Y(0.9))}"/><polyline points="${X(0)-16},${GY} ${X(0)-6},${f(Y(0.9))} ${X(0)+4},${GY}"/><line x1="${X(0)-6}" y1="${f(Y(1.5))}" x2="${f(X(0))}" y2="${f(Y(HC))}" stroke="var(--cork)"/></g>`;
-  let out,col;
-  if(r.hitNet){out="ติดเน็ต";col="var(--warn)"}
-  else if(r.land>HALF){out="ออกหลัง";col="var(--warn)"}
-  else if(r.land<=SSL&&r.net-NETH<=0.5){out="หยอดดี";col="var(--good)"}
-  else if(r.land<=SSL){out="สั้นแต่ข้ามสูง";col="var(--mid)"}
-  else if(r.land<=4.5){out="ตกกลางคอร์ท";col="var(--mid)"}
-  else {out=v0>=35?"ลูกตบลึก":"ลูกลึก";col=v0>=35?"var(--good)":"var(--mid)"}
-  g+=`<polyline points="${r.pts.map(p=>f(X(p[0]))+","+f(Y(p[1]))).join(" ")}" fill="none" stroke="var(--cork)" stroke-width="2.4" stroke-dasharray="7 5"/>`;
-  const e=r.pts[r.pts.length-1];g+=`<circle cx="${f(X(e[0]))}" cy="${f(Y(e[1]))}" r="5.5" fill="${col}"/><circle cx="${f(X(0))}" cy="${f(Y(HC))}" r="5" fill="var(--cork)"/>`;
-  $("traj").innerHTML=`<title id="traj-t">วิถีลูกจากจุดกระทบข้ามเน็ตไปตกฝั่งตรงข้าม</title>`+g;
-  $("t-clr").textContent=r.net==null?"–":r.hitNet?"ไม่ข้าม":`${Math.round((r.net-NETH)*100)} ซม.`;
-  $("t-land").textContent=r.hitNet?"–":`${r.land.toFixed(2)} ม.`;
-  $("t-time").textContent=r.hitNet?"–":`${r.t.toFixed(2)} วิ`;
-  const o=$("t-out");o.textContent=out;o.style.color=col;
-}
-["dv","da","dd"].forEach(id=>$(id).addEventListener("input",traj));
-document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{const p=PRESET[b.dataset.preset];$("dv").value=p[0];$("da").value=p[1];traj()}));
-document.querySelectorAll("[data-anim-slot]").forEach(el=>{el.innerHTML=animHTML(el.dataset.animSlot)});
-
-/* drop tab: self-check */
-const DF=[
- {id:"foot",n:"ไปให้ถึงหลังลูกทัน",c:"ถอยแบบตะแคงตัว ด้วยก้าวสไลด์หรือก้าวไขว้",w:1.2,dr:"Shadow ฟุตเวิร์คหน้า–หลังทั้ง 6 จุด 3×30 วินาที เน้นไปถึงหลังลูกก่อนลูกตก"},
- {id:"prep",n:"ท่าเตรียมเหมือนลูกตบ",c:"ง้าง ตะแคงตัว ศอกสูง เหมือนจะตบทุกครั้ง",w:1.3,dr:"ให้เพื่อนโยนลูกโด่ง แล้วสุ่มตบหรือหยอด ให้อีกคนทายก่อนลูกออกจากไม้ 3×10"},
- {id:"contact",n:"จุดกระทบสูงและหน้าตัว",c:"จุดเดียวกับลูกตบ ไม่ปล่อยให้ลูกตกต่ำ",w:1.1,dr:"Wait drill: ไปยืนใต้ลูกก่อน แล้วตีที่จุดสูงหน้าตัว สลับตบกับหยอด 3×10"},
- {id:"decel",n:"ชะลอหรือตัดหน้าไม้ช่วงท้าย",c:"แขนมาเร็วเท่าลูกตบ แต่ลดความเร็วตรงจุดกระทบ",w:1.2,dr:"หยอดลงเป้า (กล่องหรือห่วง) หน้าเน็ตให้ได้ 7 ใน 10 ลูก ทำ 3 เซต"},
- {id:"net",n:"ข้ามเน็ตเรี่ย ตกสั้น",c:"จุดสูงสุดของวิถีลูกอยู่ฝั่งเรา",w:1.0,dr:"ขึงเชือกสูงกว่าเน็ต 30–50 ซม. แล้วหยอดให้ลอดใต้เชือก 3×10"},
- {id:"recover",n:"กลับกลางคอร์ทหลังตี",c:"ส่งลูกแล้วก้าวกลับทันที",w:0.9,dr:"หยอดแล้ววิ่งกลับไปแตะจุดกลางคอร์ท 3×8 จับเวลา"}];
-const DS=[
- {id:"d1",n:"คู่แข่งอ่านลูกหยอดออก วิ่งมารอ",m:{prep:2.5,decel:1}},
- {id:"d2",n:"หยอดติดเน็ตบ่อย",m:{net:2,contact:1.5}},
- {id:"d3",n:"หยอดยาวหรือลอย โดนตบกลับ",m:{decel:2,net:1.5}},
- {id:"d4",n:"ไปไม่ทันลูก ต้องตีจากด้านหลังตัว",m:{foot:2.5,contact:1.5}},
- {id:"d5",n:"หยอดแล้วรับลูกตอบไม่ทัน",m:{recover:2,net:1}},
- {id:"d6",n:"ลูกตบช้า ไม่ลง",m:{contact:1.5,foot:1,prep:0.5}}];
-const DEX={scores:{foot:3,prep:2,contact:3,decel:2,net:2,recover:3},sym:["d1","d3"]},DKEY="smashlab.drop.v1";
-let dst=load(DKEY),dIsEx=!dst;if(!dst) dst=JSON.parse(JSON.stringify(DEX));
-$("d-factors").innerHTML=DF.map(f=>`<div class="factor"><div class="name">${f.n}</div><div class="seg" role="radiogroup" aria-label="${f.n}">${[1,2,3,4,5].map(v=>`<input type="radio" name="d-f-${f.id}" id="d-f-${f.id}-${v}" value="${v}"><label for="d-f-${f.id}-${v}">${v}</label>`).join("")}</div><div class="cue">${f.c}</div></div>`).join("");
-$("d-symptoms").innerHTML=DS.map(s=>`<label for="${s.id}"><input type="checkbox" id="${s.id}" value="${s.id}"><span>${s.n}</span></label>`).join("");
-function dPaint(){DF.forEach(f=>{const el=$(`d-f-${f.id}-${dst.scores[f.id]||3}`);if(el) el.checked=true});DS.forEach(s=>{$(s.id).checked=dst.sym.includes(s.id)});$("d-ex-badge").hidden=!dIsEx}
-function dAnalyse(){
-  let num=0,den=0;DF.forEach(f=>{num+=f.w*dst.scores[f.id];den+=f.w*5});const ov=Math.round(num/den*100);$("d-overall").textContent=ov;
-  const lv=$("d-level"),[t,bg,fg]=ov>=80?["หยอดได้ดี อ่านยาก","var(--court-soft)","var(--court)"]:ov>=60?["พอใช้ ยังมีจุดให้แก้","var(--cork-soft)","var(--cork)"]:["หยอดยังอ่านง่ายหรือไม่แม่น","var(--cork-soft)","var(--warn)"];
-  lv.textContent=t;lv.style.background=bg;lv.style.color=fg;
-  $("d-bars").innerHTML=DF.map(f=>{const v=dst.scores[f.id];return `<div class="bar"><span class="lab" title="${f.n}">${f.n}</span><div class="track"><div class="fill" style="width:${v*20}%;background:${color(v)}"></div></div><span class="num">${v}/5</span></div>`}).join("");
-  const pr=DF.map(f=>{let p=f.w*(5-dst.scores[f.id]);const why=[];if(dst.scores[f.id]<=2) why.push(`ให้คะแนนตัวเอง ${dst.scores[f.id]}/5`);DS.forEach(s=>{if(dst.sym.includes(s.id)&&s.m[f.id]){p+=s.m[f.id];why.push(s.n)}});return {f,p,why}}).sort((a,b)=>b.p-a.p).slice(0,3);
-  $("d-prio").innerHTML=pr.map((x,i)=>`<div class="pcard"><span class="rank">อันดับ ${i+1} · คะแนนความสำคัญ ${x.p.toFixed(1)}</span><h3>${x.f.n}</h3><p class="why">${x.why.length?"เพราะ: "+x.why.join(" · "):"คะแนนยังไม่เต็ม"}</p><p class="drill">${x.f.dr}</p><button type="button" class="ghost chk" data-dfocus="${x.f.id}">ตรวจท่าซ้อมเรื่องนี้</button></div>`).join("");
-}
-function dChange(){DF.forEach(f=>{const el=document.querySelector(`input[name="d-f-${f.id}"]:checked`);if(el) dst.scores[f.id]=+el.value});dst.sym=DS.filter(s=>$(s.id).checked).map(s=>s.id);dIsEx=false;$("d-ex-badge").hidden=true;save(DKEY,dst);dAnalyse()}
-$("d-factors").addEventListener("change",dChange);$("d-symptoms").addEventListener("change",dChange);
-dPaint();dAnalyse();traj();
-/* video/photo analysis shared by both tabs: the panel moves into the open tab */
-const vlHome=document.createElement("div");vlHome.id="vl-slot-smash";$("video-lab").before(vlHome);
-Object.assign(NEED,{foot:"ภาพจังหวะกระทบ หรือวิดีโอ",prep:"วิดีโอ หรือภาพตอนง้าง",contact:"ภาพจังหวะกระทบ หรือวิดีโอ",decel:"วิดีโอ",net:"เช็คลิสต์",recover:"วิดีโอที่ถ่ายต่อหลังตีอย่างน้อย 1 วินาที"});
-Object.assign(UPL,{foot:"ภาพจังหวะกระทบ หรือคลิปด้านข้าง",prep:"คลิปด้านข้างตั้งแต่ง้าง หรือภาพตอนง้าง",contact:"ภาพจังหวะกระทบ หรือคลิปด้านข้าง",decel:"คลิปด้านข้างตั้งแต่ง้างจนตีเสร็จ (60 fps ได้จะดี)",recover:"คลิปด้านข้างที่ถ่ายต่อหลังตีอย่างน้อย 1 วินาที"});
-CKL.net=["ลูกข้ามเน็ตสูงไม่เกินครึ่งความยาวไม้","ลูกตกก่อนเส้นเสิร์ฟสั้น","คู่แข่งต้องรับลูกจากใต้ระดับเน็ต"];ckState.net=[false,false,false];
-function fillFocus(){$("focus").innerHTML='<option value="">วิเคราะห์ทุกหัวข้อ</option>'+(vlMode==="drop"?DF:F).map(f=>`<option value="${f.id}">${f.n}</option>`).join("")}
-function setVLMode(m){
-  if(m===vlMode&&$("video-lab").previousElementSibling===$("vl-slot-"+m)) return;
-  vlMode=m;$("vl-slot-"+m).after($("video-lab"));
-  $("vl-title").textContent=m==="drop"?"วิเคราะห์ลูกหยอดจากวิดีโอหรือภาพ":"วิเคราะห์จากวิดีโอหรือภาพ";
-  fillFocus();tally={n:0,ok:0};tallyRun=-1;cIdx=null;
-  if(frames&&!busy) scanAnalyse();else if(lastKP&&!busy) showStatic(lastKP);else renderDrill();
-  if(lastKP) requestAnimationFrame(()=>drawPose(lastKP));
-}
-function dropContactScores(t,el){return {contact:(t>=5&&t<=35)&&(el==null||el>=140)?5:(t>=-5&&t<=40)?3:2,foot:t>=5&&t<=35?5:t>=0&&t<=40?4:t>=-5?3:t>=-15?2:1}}
-function dropStatic(m,suffix){
-  const t=m.th,thr=Math.round(t),ds=dropContactScores(t,m.el);
-  let h=row("จุดกระทบ",`${thr>0?"+":""}${thr}°`,ds.contact,`${t>=5?"อยู่หน้าตัว ไปถึงหลังลูกทัน":"อยู่เหนือหรือหลังศีรษะ แปลว่าไปถึงลูกช้า"} · ลูกหยอดควรกระทบจุดเดียวกับลูกตบ`+(m.el!=null?` · ศอก ${Math.round(m.el)}°`:""));
-  if(m.w!=null) h+=row("ตะแคงตัว (ถ้าเป็นภาพตอนง้าง)",m.w.toFixed(2),m.w<0.35?5:m.w<0.5?3:2,"ความกว้างไหล่ในภาพเทียบความยาวลำตัว ต่ำกว่า 0.35 คือตะแคงดี ท่าเตรียมจะดูเหมือนลูกตบ");
-  h+=row("ข้ามเน็ตเรี่ย ตกสั้น","–",null,"โมเดลมองไม่เห็นลูก ใช้โมเดลวิถีลูกด้านบน หรือเช็คลิสต์ในโหมดตรวจท่าซ้อม");
-  $("metrics").innerHTML=h;fillThumbs("static");vScores=ds;$("btn-apply").hidden=false;
-  lastM={src:kind==="image"?"image":"frame",th:m.th,el:m.el,w:m.w};renderDrill();
-  vs(`วิเคราะห์เฟรมเดียวแล้ว · ภาพนิ่งวัดได้เฉพาะจุดกระทบและการตะแคงตัว ถ้าอยากวัดการชะลอหน้าไม้และการกลับกลางคอร์ท ใช้คลิปแล้วกด “สแกนทั้งคลิป”`);
-}
-function dropScan(o){
-  const {a,n,T,SP,c,tc,dir,inW,st0}=o,out=[],sc={},M={src:"scan"};
-  if(st0){const t=st0.th,thr=Math.round(t),ds=dropContactScores(t,st0.el);M.th=t;M.el=st0.el;Object.assign(sc,ds);
-    out.push(row("จุดกระทบ",`${thr>0?"+":""}${thr}°`,ds.contact,`${t>=5?"อยู่หน้าตัว ไปถึงหลังลูกทัน":"อยู่เหนือหรือหลังศีรษะ แปลว่าไปถึงลูกช้า"} · ลูกหยอดควรกระทบจุดเดียวกับลูกตบ`+(st0.el!=null?` · ศอก ${Math.round(st0.el)}°`:"")))}
-  else out.push(row("จุดกระทบ","–",null,"มองไม่เห็นแขนข้างที่ตีชัดพอ"));
-  const pw=inW(-0.9,-0.12);
-  if(pw.length>=2){let side=false,eh=false,wb=false;
-    pw.forEach(i=>{const k=frames[i].kp,S0=k[a.sh],E0=k[a.el],W0=k[a.wr];
-      if(okp(k[5])&&okp(k[6])&&Math.abs(k[5].x-k[6].x)/T<0.5) side=true;
-      if(okp(S0)&&okp(E0)&&E0.y<=S0.y+0.05*T) eh=true;
-      if(okp(S0)&&okp(W0)&&dir*(W0.x-S0.x)<0&&W0.y<S0.y+0.2*T) wb=true});
-    const cnt=[side,eh,wb].filter(Boolean).length,s=[1,2,3,5][cnt];sc.prep=s;M.prep={side,eh,wb,cnt};
-    out.push(row("ท่าเตรียมเหมือนลูกตบ",`${cnt}/3`,s,`${side?"✓":"✗"} ตะแคงตัว · ${eh?"✓":"✗"} ศอกยกสูงระดับไหล่ · ${wb?"✓":"✗"} ง้างไม้ไปด้านหลัง`))}
-  else out.push(row("ท่าเตรียมเหมือนลูกตบ","–",null,"คลิปมีช่วงก่อนกระทบไม่พอ ถ่ายให้เห็นตั้งแต่ตอนง้าง"));
-  const dw=inW(-0.5,0);
-  if(dw.length>=3){const vmax=Math.max(...dw.map(i=>SP.wr[i])),vc=SP.wr[c],ratio=vmax>0?vc/vmax:1,s=ratio<=0.6?5:ratio<=0.75?4:ratio<=0.9?3:2;sc.decel=s;M.ratio=ratio;M.vmax=vmax;
-    out.push(row("ชะลอหน้าไม้ตรงจุดกระทบ",`${Math.round(ratio*100)}%`,s,`ความเร็วข้อมือตอนกระทบ เทียบกับความเร็วสูงสุดใน 0.5 วินาทีก่อนกระทบ ลูกหยอดควรไม่เกิน 75% แต่แขนต้องมาเร็วก่อนหน้านั้นเพื่อหลอกคู่แข่ง`))}
-  else out.push(row("ชะลอหน้าไม้ตรงจุดกระทบ","–",null,"คลิปมีช่วงก่อนกระทบไม่พอ"));
-  const after=frames[n-1].t-tc;
-  if(after>=0.5){let rt=null;for(let i=c+1;i<n;i++){const dt=frames[i].t-tc;if(dt>1.2) break;if(dt>0.08&&SP.hip[i]>0.8){rt=dt;break}}
-    if(rt!=null){const ms=Math.round(rt*1000),s=ms<400?5:ms<700?4:ms<1000?3:2;sc.recover=s;M.recMs=ms;out.push(row("เริ่มกลับกลางคอร์ทหลังตี",`${ms} ms`,s,"เวลาตั้งแต่กระทบจนสะโพกเริ่มเคลื่อนที่ ยิ่งเร็วยิ่งพร้อมรับลูกตอบ"))}
-    else {sc.recover=1;M.recMs=null;M.recNone=true;out.push(row("เริ่มกลับกลางคอร์ทหลังตี","ไม่พบ",1,"ไม่เห็นสะโพกเคลื่อนที่ภายใน 1.2 วินาทีหลังตี"))}}
-  else {M.recShort=true;out.push(row("เริ่มกลับกลางคอร์ทหลังตี","–",null,"คลิปหลังตีสั้นกว่า 0.5 วินาที ถ่ายต่ออีกสักพักหลังตี"))}
-  out.push(row("ข้ามเน็ตเรี่ย ตกสั้น","–",null,"โมเดลมองไม่เห็นลูก ใช้โมเดลวิถีลูกด้านบน หรือเช็คลิสต์ในโหมดตรวจท่าซ้อม"));
-  lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=sc;$("btn-apply").hidden=!Object.keys(sc).length;
-  drawSpeed(SP,tc);renderDrill();
-  vs(`สแกน ${n} เฟรมแล้ว · จุดกระทบ (ตอนข้อมือสูงที่สุด) อยู่ที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
-  return true;
-}
-function judgeDrop(id,M){
-  const needScan=()=>({v:"na",meas:"เรื่องนี้ต้องใช้วิดีโอ",cue:`อัปโหลด${UPL[id]} แล้วกด “สแกนทั้งคลิป”`});
-  if(!M) return {v:"na",meas:"ยังไม่ได้วิเคราะห์ไฟล์",cue:`อัปโหลด${UPL[id]}${kind==="video"?" แล้วกด “สแกนทั้งคลิป”":""}`};
-  if(id==="foot"||id==="contact"){if(M.th==null) return {v:"na",meas:"มองไม่เห็นแขนข้างที่ตีชัดพอ",cue:"ลองภาพที่เห็นทั้งตัวจากด้านข้าง"};
-    const t=Math.round(M.th),ds=dropContactScores(M.th,M.el),s=ds[id],v=s>=5?"pass":s>=3?"near":"fail";
-    return {v,meas:`จุดกระทบ ${t>0?"+":""}${t}°`+(M.el!=null&&id==="contact"?` · ศอก ${Math.round(M.el)}°`:""),target:id==="foot"?"กระทบหน้าตัว (+5° ถึง +35°)":"หน้าตัว +5° ถึง +35° และศอกเหยียดอย่างน้อย 140°",
-      cue:v==="pass"?(id==="foot"?"ไปถึงหลังลูกทัน ตีลูกได้ด้านหน้า":"จุดกระทบสูงและอยู่หน้าตัว เหมือนลูกตบ"):(t<5?"ไปถึงลูกช้า ต้องตีเหนือหรือหลังศีรษะ ออกตัวให้เร็วขึ้นและถอยแบบตะแคงตัวด้วยก้าวสไลด์":"จุดกระทบต่ำหรือยื่นไปข้างหน้าเกิน เข้าไปอยู่ใต้ลูกให้เร็วขึ้น และเหยียดแขนให้สุดตอนกระทบ")}}
-  if(id==="prep"){
-    if(M.prep){const p=M.prep,v=p.cnt===3?"pass":p.cnt===2?"near":"fail",miss=[!p.side&&"ตะแคงตัว",!p.eh&&"ยกศอกสูงระดับไหล่",!p.wb&&"ง้างไม้ไปด้านหลัง"].filter(Boolean);
-      return {v,meas:`${p.side?"✓":"✗"} ตะแคง · ${p.eh?"✓":"✗"} ศอกสูง · ${p.wb?"✓":"✗"} ง้างไม้`,target:"ครบ 3 ข้อ เหมือนท่าเตรียมลูกตบ",cue:v==="pass"?"ท่าเตรียมเหมือนลูกตบ คู่แข่งอ่านยาก":`ยังขาด: ${miss.join(", ")} ถ้าท่าเตรียมต่างจากลูกตบ คู่แข่งจะวิ่งมารอที่หน้าเน็ต`}}
-    if(M.w!=null){const v=M.w<0.35?"pass":M.w<0.5?"near":"fail";return {v,meas:`ความกว้างไหล่ในภาพ ${M.w.toFixed(2)}`,target:"ภาพตอนง้าง ต่ำกว่า 0.35",cue:v==="pass"?"ตะแคงตัวพอแล้ว ท่าเตรียมดูเหมือนลูกตบ":"ยังหันหน้าเข้าเน็ต ตะแคงตัวให้ไหล่ข้างที่ไม่ได้ตีชี้ไปหาลูก"}}
-    return needScan()}
-  if(id==="decel"){if(M.src!=="scan") return needScan();if(M.ratio==null) return {v:"na",meas:"คลิปมีช่วงก่อนกระทบไม่พอ",cue:"ถ่ายให้เห็นตั้งแต่ตอนง้าง"};
-    const r=M.ratio,v=r<=0.75?"pass":r<=0.9?"near":"fail";
-    return {v,meas:`ความเร็วข้อมือตอนกระทบ ${Math.round(r*100)}% ของความเร็วสูงสุด`,target:"ไม่เกิน 75%",cue:v==="pass"?"แขนมาเร็วแล้วชะลอตรงจุดกระทบ ลูกหยอดจะออกช้าโดยท่าดูเหมือนลูกตบ":"แขนยังเร็วเท่าเดิมตอนกระทบ ลูกจะกลายเป็นลูกดาดหรือลูกตบ ลองเหวี่ยงเร็วแล้วผ่อนช่วงสุดท้าย หรือใช้การตัดหน้าไม้"}}
-  if(id==="recover"){if(M.src!=="scan") return needScan();if(M.recShort) return {v:"na",meas:"คลิปหลังตีสั้นเกินไป",cue:"ถ่ายต่ออีกอย่างน้อย 1 วินาทีหลังตี"};
-    if(M.recNone) return {v:"fail",meas:"ไม่เห็นการเคลื่อนที่ภายใน 1.2 วินาที",target:"เริ่มขยับภายใน 400 ms",cue:"หยุดยืนดูลูกหลังหยอด ให้ก้าวกลับกลางคอร์ททันทีที่ลูกออกจากไม้"};
-    const ms=M.recMs,v=ms<400?"pass":ms<700?"near":"fail";
-    return {v,meas:`เริ่มขยับหลังตี ${ms} ms`,target:"ภายใน 400 ms",cue:v==="pass"?"กลับมาพร้อมรับลูกต่อได้เร็ว":"ช้าไปเล็กน้อย ให้ก้าวกลับกลางคอร์ททันทีที่ลูกออกจากไม้"}}
-  return {v:"na",meas:"",cue:""};
-}
-$("d-prio").addEventListener("click",e=>{const b=e.target.closest("[data-dfocus]");if(!b) return;if(vlMode!=="drop") setVLMode("drop");$("focus").value=b.dataset.dfocus;$("focus").dispatchEvent(new Event("change"));
-  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("video-lab").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});$("focus").focus({preventScroll:true})});
-showTab(location.hash==="#drop"?"drop":"smash");
+function fillFocus(){$("focus").innerHTML='<option value="">วิเคราะห์ทุกหัวข้อ</option>'+F.map(f=>`<option value="${f.id}">${f.n}</option>`).join("")}
+fillFocus();
 
 paintInputs(); analyse(); hist(); model();
 })();
