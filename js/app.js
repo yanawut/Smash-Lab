@@ -688,4 +688,8 @@ paintInputs(); analyse(); model();
 })();
 
 /* PWA: offline cache + install */
-if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{})});
+  // a new version took over this page: reload once so html, css and js all come from the same deploy
+  if(navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(done) return;done=true;location.reload()})}
+}

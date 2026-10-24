@@ -1,6 +1,6 @@
 /* Smash Lab service worker: caches the app shell and pose model for offline use.
    Bump VERSION whenever you change any cached file so users get the update. */
-const VERSION = "smashlab-v19";
+const VERSION = "smashlab-v20";
 const CORE = [
   "./",
   "index.html",
@@ -77,7 +77,7 @@ self.addEventListener("fetch", (e) => {
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req)
-        .then((res) => { caches.open(VERSION).then((c) => c.put("index.html", res.clone())); return res; })
+        .then((res) => { const copy = res.clone(); caches.open(VERSION).then((c) => c.put("index.html", copy)); return res; })
         .catch(() => caches.match("index.html"))
     );
     return;
@@ -96,13 +96,24 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Same-origin files (code, model, icons): cache first
-  if (url.origin === self.location.origin) {
+  if (url.origin !== self.location.origin) return;
+
+  // Big files that rarely change (pose model, TF.js, icons, audio): cache first
+  if (/\/(models|vendor|icons|audio)\//.test(url.pathname)) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-        if (res.ok) caches.open(VERSION).then((c) => c.put(req, res.clone()));
+        if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
         return res;
       }))
     );
+    return;
   }
+
+  // App code (html, css, js, manifest): network first so a deploy shows up on the first load,
+  // cached copy when offline
+  e.respondWith(
+    fetch(req, { cache: "no-cache" })
+      .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); } return res; })
+      .catch(() => caches.match(req, { ignoreSearch: true }))
+  );
 });
