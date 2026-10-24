@@ -49,7 +49,13 @@
           <input type="radio" name="hand" id="hand-l"><label for="hand-l">ซ้าย</label>
         </div>
       </div>
-      <div class="opt"><span class="note">หันหน้าไปทาง</span>
+      <div class="opt"><span class="note">มุมกล้อง</span>
+        <div class="seg small" role="radiogroup" aria-label="มุมกล้อง">
+          <input type="radio" name="view" id="view-side" checked><label for="view-side">ด้านข้าง</label>
+          <input type="radio" name="view" id="view-rear"><label for="view-rear">ด้านหลัง</label>
+        </div>
+      </div>
+      <div class="opt" id="opt-face"><span class="note">หันหน้าไปทาง</span>
         <div class="seg small" role="radiogroup" aria-label="ทิศที่หันหน้าในภาพ">
           <input type="radio" name="face" id="face-a" checked><label for="face-a">อัตโนมัติ</label>
           <input type="radio" name="face" id="face-r"><label for="face-r">ขวา</label>
@@ -57,13 +63,20 @@
         </div>
       </div>
     </div>
+    <p class="note rear-note" id="rear-note" hidden>มุมด้านหลังวัด 5 เรื่องตามที่ <a href="https://www.youtube.com/watch?v=zLu8WNV8nXU&amp;t=120s" target="_blank" rel="noopener">ครีม บุศนันทน์ สอนตบ (Jongnow TH) ↗</a> แนะนำ: แขนเหยียดสุดตอนกระทบ ตีเหนือศีรษะ ลูกอยู่เหนือไหล่ข้างที่ตี ยกศอกตอนตั้งท่า และก้าวตามลูกไปข้างหน้าหลังตบ</p>
     <div class="vl-body">
       <div class="stage" id="stage">
         <div class="stage-empty" id="stage-empty" role="button" tabindex="0" aria-label="เลือกวิดีโอหรือภาพ">
           <svg class="drop-icon" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="5" y="11" width="28" height="26" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M33 20 L43 14 V34 L33 28 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 30 V18 M14 23 L19 18 L24 23" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="drop-cta">แตะเพื่อเลือกไฟล์ หรือลากวิดีโอ/ภาพมาวางที่นี่</span>
           <b>ถ่ายแบบนี้จะวิเคราะห์ได้แม่นที่สุด</b>
-          <ul>
+          <ul id="tips-rear" hidden>
+            <li>ตั้งกล้องด้านหลังผู้ตี หันไปทางเน็ต สูงประมาณระดับอก</li>
+            <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
+            <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว และถ่ายต่อหลังตีอีก 1 วินาที</li>
+            <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
+          </ul>
+          <ul id="tips-side">
             <li>ตั้งกล้องด้านข้าง ให้ตั้งฉากกับทิศที่ตบ</li>
             <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
             <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว</li>

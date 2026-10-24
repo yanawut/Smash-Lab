@@ -103,14 +103,23 @@ const NARR={
  t_torso_rot:"ลำตัวหมุนเข้ามาน้อย ให้สะโพกและอกหมุนนำ ก่อนแขนเริ่มเหวี่ยง",
  t_gaze:"ศีรษะขยับมากก่อนกระทบ มองลูกจนถึงจังหวะกระทบ อย่าเงยหน้าตามไม้",
  t_elbow:"ศอกงอตอนกระทบ มักเกิดจากลูกเลยตัว หรือจุดกระทบชิดตัวเกินไป เหยียดแขนให้สุดตอนตี",
+ m_ext:"แขนเหยียดตอนกระทบ",m_reach:"ความสูงจุดกระทบ",m_lat:"ตำแหน่งลูกซ้ายขวา",m_elbowup:"ยกศอกตอนตั้งท่า",m_follow:"ก้าวตามลูกหลังตบ",
+ t_ext:"ศอกยังงอตอนกระทบ เหยียดแขนให้สุด ให้ไม้โดนลูกที่จุดสูงที่สุดที่เอื้อมถึง",
+ t_reach:"จุดกระทบยังต่ำ ไปให้ถึงลูกเร็วขึ้น แล้วตีเหนือศีรษะตอนแขนเหยียดสุด",
+ t_lat_in:"ลูกเยื้องเข้ามาเหนือศีรษะ ขยับตัวให้ลูกอยู่เหนือไหล่ข้างที่ตี",
+ t_lat_out:"ลูกออกไปด้านข้างตัว แขนเหวี่ยงจากด้านข้าง ขยับเข้าไปให้ลูกอยู่เหนือไหล่ข้างที่ตี",
+ t_elbowup:"ตอนตั้งท่ายกศอกขึ้นให้สูงระดับไหล่ หน้าไม้เปิดไปข้างหน้า",
+ t_follow:"หลังตบให้ก้าวตามลูกไปข้างหน้า อย่าถอยหรือเอนไปข้างหลัง",
  first:"เรื่องที่ควรแก้ก่อน คือ",allgood:"ทุกหัวข้อที่วัดได้อยู่ในเกณฑ์ดี รักษาจังหวะนี้ไว้",
  end:"ซ้อมแล้วถ่ายคลิปมาวิเคราะห์ใหม่ เพื่อดูความคืบหน้า"
 };
 function narList(){
   if(!lastM||!vScores) return [];
-  const scan=lastM.src==="scan",ids=scan?["setp","throw","seq","torso","gaze"]:["setp","elbow"],sc=Object.assign({},vScores,{elbow:lastM.es}),L=["intro"];let worst=null;
-  const tip=id=>id==="setp"?(lastM.th<10?"t_setp_early":"t_setp_late"):id==="torso"?((scan?lastM.wp:lastM.w)>0.5?"t_torso_open":"t_torso_rot"):"t_"+id;
-  ids.forEach(id=>{const s=sc[id];if(s==null&&!scan&&id==="elbow") return;L.push("m_"+id);
+  const scan=lastM.src==="scan",rear=lastM.view==="rear",L=["intro"];let worst=null;
+  const ids=rear?(scan?["ext","reach","lat","elbowup","follow"]:["ext","reach","lat"]):scan?["setp","throw","seq","torso","gaze"]:["setp","elbow"];
+  const sc=rear?{ext:lastM.es,reach:lastM.rs,lat:lastM.ls,elbowup:lastM.eus,follow:lastM.fws}:Object.assign({},vScores,{elbow:lastM.es});
+  const tip=id=>id==="setp"?(lastM.th<10?"t_setp_early":"t_setp_late"):id==="torso"?((scan?lastM.wp:lastM.w)>0.5?"t_torso_open":"t_torso_rot"):id==="lat"?(lastM.lat<0?"t_lat_in":"t_lat_out"):"t_"+id;
+  ids.forEach(id=>{const s=sc[id];if(s==null&&!scan&&(id==="elbow"||id==="ext")) return;L.push("m_"+id);
     if(s==null){L.push("v_n");return}
     L.push(s>=4?"v_g":s===3?"v_m":"v_b");
     if(s<=3){L.push(tip(id));if(!worst||s<sc[worst]) worst=id}});
@@ -248,13 +257,39 @@ function drawPose(kp){
   const S0=kp[a.sh],W0=kp[a.wr];
   if(okp(S0)&&okp(W0)){const L=dist(S0,W0);const [x0,y0]=P(S0);
     octx.setLineDash([6*dpr,5*dpr]);octx.strokeStyle=hot;octx.lineWidth=2*dpr;octx.beginPath();octx.moveTo(x0,y0);octx.lineTo(x0,(S0.y-L)*sy);octx.stroke();octx.setLineDash([]);
-    const th=Math.round(deg(Math.atan2(dirOf(kp)*(W0.x-S0.x),-(W0.y-S0.y))));
+    const rm=isRear()?rearMetrics(kp):null,th=Math.round(deg(Math.atan2(dirOf(kp)*(W0.x-S0.x),-(W0.y-S0.y))));
+    if(rm){if(rm.el!=null){octx.font=`${14*dpr}px "IBM Plex Mono",monospace`;octx.fillStyle=hot;octx.fillText("ศอก "+Math.round(rm.el)+"°",x0+8*dpr,(S0.y-L*0.55)*sy)}return}
     octx.font=`${14*dpr}px "IBM Plex Mono",monospace`;octx.fillStyle=hot;octx.fillText((th>0?"+":"")+th+"°",x0+8*dpr,(S0.y-L*0.55)*sy);}
 }
 function zoneOf(th){return th<0?"หลังศีรษะ":th<10?"จุดสูงสุด":th<=30?"โซนแนะนำ":"ต่ำ/หน้าเกินไป"}
 function scTheta(th){return th>=10&&th<=30?5:(th>=5&&th<10)||(th>30&&th<=38)?4:(th>=0&&th<5)||(th>38&&th<=45)?3:th>=-10&&th<0?2:1}
 function pill(s){return s==null?'<span class="pill n">ข้อมูลไม่พอ</span>':s>=4?'<span class="pill g">ดี</span>':s===3?'<span class="pill m">พอใช้</span>':'<span class="pill b">ควรแก้</span>'}
 function row(n,v,s,d){return `<div class="metric"><span class="mn">${n}</span><span class="mv">${v}</span>${pill(s)}<span class="md">${d}</span>${s!=null&&s<=2?`<div class="mthumb" data-mn="${n}"><span class="note">กำลังดึงภาพนิ่งจากวิดีโอ…</span></div>`:""}</div>`}
+/* rear view (camera behind the player, facing the net): cues from the Jongnow TH clip with Busanan Ongbamrungphan */
+const isRear=()=>$("view-rear").checked;
+function rearMetrics(kp){
+  const a=arm(),S0=kp[a.sh],E0=kp[a.el],W0=kp[a.wr],O=kp[a.sh===6?5:6];if(!okp(S0)||!okp(W0)) return null;
+  let el=null,reach=null,lat=null;
+  if(okp(E0)){const u=[S0.x-E0.x,S0.y-E0.y],v=[W0.x-E0.x,W0.y-E0.y];el=deg(Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1])/(Math.hypot(...u)*Math.hypot(...v))))));
+    const L=dist(S0,E0)+dist(E0,W0);if(L>0) reach=(S0.y-W0.y)/L}
+  if(okp(O)){const sw=Math.abs(S0.x-O.x),out=Math.sign(S0.x-O.x)||1;if(sw>0) lat=(W0.x-S0.x)*out/sw}
+  return {el,reach,lat};
+}
+const scExt=e=>e>=160?5:e>=150?4:e>=135?3:2;
+const scReach=r=>r>=0.85?5:r>=0.75?4:r>=0.6?3:2;
+const scLat=l=>l>=-0.6&&l<=0.5?5:l>=-0.9&&l<=0.9?3:2;
+function rearRows(m){
+  const out=[];
+  if(m.el!=null){const e=Math.round(m.el);out.push(row("แขนเหยียดตอนกระทบ",`${e}°`,scExt(m.el),e>=150?"แขนเหยียดเกือบสุด ไม้ได้ระยะสูงสุด":"ศอกยังงอ ควรเหยียดแขนให้สุดตอนไม้โดนลูก"))}
+  else out.push(row("แขนเหยียดตอนกระทบ","–",null,"มองไม่เห็นศอกข้างที่ตีชัดพอ"));
+  if(m.reach!=null) out.push(row("ความสูงจุดกระทบ",`${Math.round(m.reach*100)}%`,scReach(m.reach),"ความสูงของข้อมือเหนือไหล่ เทียบกับความยาวแขน · 100% คือเหยียดตรงขึ้นเหนือศีรษะ"));
+  else out.push(row("ความสูงจุดกระทบ","–",null,"มองไม่เห็นแขนข้างที่ตีชัดพอ"));
+  if(m.lat!=null){const l=m.lat;out.push(row("ตำแหน่งลูกซ้ายขวา",l<-0.6?"เยื้องเข้าศีรษะ":l>0.5?"ออกข้างตัว":"เหนือไหล่",scLat(l),"ตำแหน่งข้อมือเทียบไหล่ข้างที่ตี (ระยะเท่าความกว้างไหล่) · ควรอยู่เหนือไหล่ข้างที่ตี ไม่อ้อมศีรษะและไม่ออกข้างตัว"))}
+  else out.push(row("ตำแหน่งลูกซ้ายขวา","–",null,"มองไม่เห็นไหล่สองข้างชัดพอ"));
+  return out;
+}
+function rearScores(m){return {es:m.el==null?null:scExt(m.el),rs:m.reach==null?null:scReach(m.reach),ls:m.lat==null?null:scLat(m.lat)}}
+function rearVScores(r){const v=[r.rs,r.ls].filter(x=>x!=null);return v.length?{setp:Math.min(...v)}:null}
 function staticMetrics(kp){
   const a=arm(),S0=kp[a.sh],E0=kp[a.el],W0=kp[a.wr];if(!okp(S0)||!okp(W0)) return null;
   const th=deg(Math.atan2(dirOf(kp)*(W0.x-S0.x),-(W0.y-S0.y)));
@@ -264,6 +299,7 @@ function staticMetrics(kp){
   return {th,el,w};
 }
 function showStatic(kp,suffix){
+  if(isRear()) return rearStatic(kp,suffix);
   const m=staticMetrics(kp);
   if(!m){narStop();$("btn-narrate").hidden=true;$("metrics").innerHTML="";vs("มองไม่เห็นไหล่หรือข้อมือข้างที่ตีชัดพอ ลองภาพที่เห็นทั้งตัวจากด้านข้าง หรือเปลี่ยนมือที่ตี");$("btn-apply").hidden=true;lastM=null;renderDrill();return}
   const s=scTheta(m.th),thr=Math.round(m.th);
@@ -281,7 +317,8 @@ function thumbIndex(name){
   if(/ลำดับการส่งแรง/.test(name)) return near(tc-0.15);
   if(/หมุนลำตัว|ท่าเตรียม/.test(name)){let bi=near(tc-0.4),bw=1e9;inW(-0.9,-0.12).forEach(i=>{const k=frames[i].kp;if(okp(k[5])&&okp(k[6])){const w=Math.abs(k[5].x-k[6].x);if(w<bw){bw=w;bi=i}}});return bi}
   if(/ศีรษะ/.test(name)){const kc=frames[c].kp;if(!okp(kc[0])||!okp(kc[5])||!okp(kc[6])) return near(tc-0.2);const rel=k=>({x:k[0].x-(k[5].x+k[6].x)/2,y:k[0].y-(k[5].y+k[6].y)/2}),r0=rel(kc);let bi=c,bd=-1;inW(-0.4,0).forEach(i=>{const k=frames[i].kp;if(okp(k[0])&&okp(k[5])&&okp(k[6])){const d=dist(rel(k),r0);if(d>bd){bd=d;bi=i}}});return bi}
-  if(/กลับกลางคอร์ท/.test(name)) return near(tc+0.6);
+  if(/กลับกลางคอร์ท|ก้าวตามลูก/.test(name)) return near(tc+0.6);
+  if(/ยกศอก/.test(name)) return near(tc-0.4);
   return c;
 }
 function snap(src,kp){
@@ -323,9 +360,11 @@ function scanAnalyse(){
   const sp=key=>frames.map((f,i)=>{if(i===0||i===n-1) return 0;const p=get(frames[i-1].kp,key),q=get(frames[i+1].kp,key);if(!okp(p)||!okp(q)) return 0;return dist(p,q)/(frames[i+1].t-frames[i-1].t)/T});
   const smooth=arr=>arr.map((v,i)=>(arr[Math.max(0,i-1)]+v+arr[Math.min(arr.length-1,i+1)])/3);
   const SP={hip:smooth(sp("hip")),sh:smooth(sp("sh")),el:smooth(sp("el")),wr:smooth(sp("wr"))};
+  if(cIdx==null&&isRear()){let best=1e9,bi=0;frames.forEach((f,i)=>{const w=f.kp[a.wr];if(okp(w)&&w.y<best){best=w.y;bi=i}});cIdx=bi}
   if(cIdx==null){let best=-1,bi=0;frames.forEach((f,i)=>{const k=f.kp;const above=okp(k[a.wr])&&okp(k[a.sh])&&k[a.wr].y<k[a.sh].y;const v=SP.wr[i]*(above?1:0.4);if(v>best){best=v;bi=i}});cIdx=bi}
   const c=cIdx,tc=frames[c].t,kc=frames[c].kp,dir=dirOf(kc);
   const inW=(lo,hi)=>frames.map((f,i)=>i).filter(i=>frames[i].t>=tc+lo&&frames[i].t<=tc+hi);
+  if(isRear()) return rearScan({a,n,T,SP,c,tc,inW});
   const st0=staticMetrics(kc);const out=[];const sc={};const M={src:"scan"};
   if(st0){const s=scTheta(st0.th),thr=Math.round(st0.th);sc.setp=s;M.th=st0.th;M.el=st0.el;out.push(row("จุดกระทบ",`${thr>0?"+":""}${thr}°`,s,`${zoneOf(st0.th)} · มุมแขนจากแนวตั้งที่เฟรมกระทบ (แนะนำ +10° ถึง +30°)`))}
   const W1=frames[Math.max(0,c-1)].kp[a.wr],W2=frames[Math.min(n-1,c+1)].kp[a.wr];
@@ -351,6 +390,31 @@ function scanAnalyse(){
   vs(`สแกน ${n} เฟรมแล้ว · จุดกระทบที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
   return true;
 }
+function rearStatic(kp,suffix){
+  const m=rearMetrics(kp);
+  if(!m){narStop();$("btn-narrate").hidden=true;$("metrics").innerHTML="";vs("มองไม่เห็นไหล่หรือข้อมือข้างที่ตีชัดพอ ลองภาพที่เห็นทั้งตัวจากด้านหลัง หรือเปลี่ยนมือที่ตี");$("btn-apply").hidden=true;lastM=null;vScores=null;renderDrill();return}
+  const r=rearScores(m);$("metrics").innerHTML=rearRows(m).join("");fillThumbs("static");
+  vScores=rearVScores(r);$("btn-apply").hidden=!vScores;
+  lastM=Object.assign({src:kind==="image"?"image":"frame",view:"rear"},m,r);narShow();renderDrill();
+  vs(`วิเคราะห์เฟรมเดียวจากมุมด้านหลังแล้ว${suffix||""}`);
+}
+function rearScan(o){
+  const {a,n,T,c,tc,inW}=o,kc=frames[c].kp,m=rearMetrics(kc)||{el:null,reach:null,lat:null},r=rearScores(m),out=rearRows(m),M=Object.assign({src:"scan",view:"rear"},m,r);
+  const pw=inW(-0.9,-0.1).map(i=>{const k=frames[i].kp,S0=k[a.sh],E0=k[a.el];return okp(S0)&&okp(E0)?(S0.y-E0.y)/T:null}).filter(x=>x!=null);
+  if(pw.length){const e=Math.max(...pw),s=e>=0?5:e>=-0.1?4:e>=-0.25?3:2;M.eu=e;M.eus=s;
+    out.push(row("ยกศอกตอนตั้งท่า",e>=0?"สูงกว่าไหล่":`ต่ำกว่าไหล่ ${Math.round(-e*100)}%`,s,"ความสูงของศอกเทียบไหล่ ช่วงก่อนตี (เทียบความยาวลำตัว) · ตั้งท่าควรยกศอกขึ้นระดับไหล่ หน้าไม้เปิดไปข้างหน้า"))}
+  else out.push(row("ยกศอกตอนตั้งท่า","–",null,"คลิปมีช่วงก่อนกระทบไม่พอ หรือมองไม่เห็นศอก"));
+  const tl=i=>{const k=frames[i].kp;const sm=okp(k[5])&&okp(k[6])?midp(k[5],k[6]):null,hm=okp(k[11])&&okp(k[12])?midp(k[11],k[12]):null;return sm&&hm?dist(sm,hm):null};
+  const med=v=>{const x=v.filter(y=>y!=null).sort((p,q)=>p-q);return x.length?x[Math.floor(x.length/2)]:null};
+  const before=med(inW(-0.15,0).map(tl)),after=med(inW(0.4,0.9).map(tl));
+  if(before&&after&&frames[n-1].t-tc>=0.5){const ratio=after/before,s=ratio<=0.95?5:ratio<=0.98?4:ratio<=1.02?3:2;M.fw=ratio;M.fws=s;
+    out.push(row("ก้าวตามลูกหลังตบ",ratio<1?`ไปข้างหน้า ${Math.round((1-ratio)*100)}%`:`ถอยหลัง ${Math.round((ratio-1)*100)}%`,s,"ขนาดลำตัวในภาพหลังตบเทียบกับตอนตี (ค่าประมาณ) · ตัวเล็กลงแปลว่าก้าวตามลูกไปทางเน็ต ตัวใหญ่ขึ้นแปลว่าถอยหลังเข้าหากล้อง"))}
+  else out.push(row("ก้าวตามลูกหลังตบ","–",null,"คลิปหลังตบสั้นกว่า 0.5 วินาที ถ่ายต่ออีกสักพักหลังตี"));
+  lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=rearVScores(r);$("btn-apply").hidden=!vScores;narShow();
+  drawSpeed(o.SP,tc);renderDrill();
+  vs(`สแกน ${n} เฟรมแล้ว (มุมด้านหลัง) · จุดกระทบ (ตอนข้อมือสูงสุด) ที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
+  return true;
+}
 function drawSpeed(SP,tc){
   const t0=frames[0].t,t1=frames[frames.length-1].t||1,X=t=>10+(t-t0)/(t1-t0||1)*300;
   const col={hip:"var(--muted)",sh:"var(--court)",el:"var(--mid)",wr:"var(--cork)"};
@@ -370,7 +434,7 @@ $("media-file").addEventListener("change",e=>{
     vid.onerror=()=>vs("เปิดวิดีโอนี้ในเบราว์เซอร์ไม่ได้ ลองไฟล์ MP4");
   }else if(f.type.startsWith("image/")){
     kind="image";vid.pause();vid.hidden=true;vid.removeAttribute("src");img.hidden=false;$("stage-empty").hidden=true;img.src=objUrl;
-    img.onload=async()=>{fitOv();setBusy(true);try{const [w,h]=natSize();lastKP=await detect(img,w,h);drawPose(lastKP);runId++;showStatic(lastKP," (ภาพนิ่งวัดได้เฉพาะจุดกระทบและศอก)")}catch(err){vs(err.message||"วิเคราะห์ไม่สำเร็จ")}setBusy(false)};
+    img.onload=async()=>{fitOv();setBusy(true);try{const [w,h]=natSize();lastKP=await detect(img,w,h);drawPose(lastKP);runId++;showStatic(lastKP,isRear()?" (ภาพนิ่งวัดได้เฉพาะตอนกระทบ ส่วนการยกศอกและการก้าวตามลูกต้องใช้คลิป)":" (ภาพนิ่งวัดได้เฉพาะจุดกระทบและศอก)")}catch(err){vs(err.message||"วิเคราะห์ไม่สำเร็จ")}setBusy(false)};
   }else{kind=null;vs("รองรับเฉพาะไฟล์วิดีโอหรือภาพ")}
   $("btn-clear").hidden=false;
 });
@@ -407,6 +471,9 @@ $("btn-scan").addEventListener("click",async()=>{
 $("btn-setc").addEventListener("click",()=>{if(!frames||busy) return;cIdx=nearest(vid.currentTime);lastKP=frames[cIdx].kp;drawPose(lastKP);runId++;scanAnalyse()});
 vid.addEventListener("seeked",()=>{if(frames&&!busy){lastKP=frames[nearest(vid.currentTime)].kp;drawPose(lastKP)}});
 vid.addEventListener("play",()=>{octx.clearRect(0,0,ov.width,ov.height)});
+function applyView(){const r=isRear();$("opt-face").hidden=r;$("tips-rear").hidden=!r;$("tips-side").hidden=r;$("rear-note").hidden=!r}
+["view-side","view-rear"].forEach(id=>$(id).addEventListener("change",()=>{applyView();cIdx=null;if(lastKP) drawPose(lastKP);if(frames){if(scanAnalyse()&&cIdx!=null){lastKP=frames[cIdx].kp;seekTo(frames[cIdx].t).then(()=>drawPose(lastKP))}}else if(lastKP) showStatic(lastKP)}));
+applyView();
 ["hand-r","hand-l","face-a","face-r","face-l"].forEach(id=>$(id).addEventListener("change",()=>{if(lastKP) drawPose(lastKP);if(frames) scanAnalyse();else if(lastKP) showStatic(lastKP)}));
 window.addEventListener("resize",()=>{if(lastKP) drawPose(lastKP)});
 $("btn-apply").addEventListener("click",()=>{
@@ -430,6 +497,11 @@ function judge(id,M){
   const needScan=()=>({v:"na",meas:"เรื่องนี้ต้องใช้วิดีโอ",cue:`อัปโหลด${UPL[id]} แล้วกด “สแกนทั้งคลิป”`});
   if(!M) return {v:"na",meas:"ยังไม่ได้วิเคราะห์ไฟล์",cue:`อัปโหลด${UPL[id]}${kind==="video"?" แล้วกด “สแกนทั้งคลิป”":""}`};
   const r2=x=>x.toFixed(2);
+  if(M.view==="rear"){
+    if(id!=="setp") return {v:"na",meas:"เรื่องนี้วัดจากมุมด้านหลังไม่ได้",cue:`เปลี่ยนมุมกล้องเป็น “ด้านข้าง” แล้วอัปโหลด${UPL[id]||"คลิปด้านข้าง"}`};
+    const s=Math.min(...[M.rs,M.ls].filter(x=>x!=null));if(!isFinite(s)) return {v:"na",meas:"มองไม่เห็นแขนข้างที่ตีชัดพอ",cue:"ลองภาพที่เห็นทั้งตัวจากด้านหลัง"};
+    const v=s>=5?"pass":s>=3?"near":"fail";
+    return {v,meas:`ความสูงจุดกระทบ ${M.reach!=null?Math.round(M.reach*100)+"%":"–"}${M.el!=null?` · ศอก ${Math.round(M.el)}°`:""}`,target:"เหยียดแขนเหนือศีรษะ (85% ขึ้นไป) และลูกอยู่เหนือไหล่ข้างที่ตี",cue:v==="pass"?"ตีเหนือศีรษะตอนแขนเหยียดสุด ตำแหน่งลูกดี":M.rs!=null&&M.rs<5?"จุดกระทบยังต่ำ ไปให้ถึงลูกเร็วขึ้น แล้วตีเหนือศีรษะตอนแขนเหยียดสุด":M.lat<0?"ลูกเยื้องเข้ามาเหนือศีรษะ ขยับตัวให้ลูกอยู่เหนือไหล่ข้างที่ตี":"ลูกออกไปด้านข้างตัว ขยับเข้าไปให้ลูกอยู่เหนือไหล่ข้างที่ตี"}}
   if(id==="setp"){if(M.th==null) return {v:"na",meas:"มองไม่เห็นแขนข้างที่ตีชัดพอ",cue:"ลองภาพที่เห็นทั้งตัวจากด้านข้าง"};
     const t=Math.round(M.th),v=t>=10&&t<=30?"pass":t>=5&&t<=38?"near":"fail";
     return {v,meas:`มุมจุดกระทบ ${t>0?"+":""}${t}°`,target:"+10° ถึง +30°",cue:v==="pass"?"จุดกระทบอยู่ในโซนแนะนำ รักษาจังหวะรอแบบนี้ไว้":t<10?"ตีเร็วเกินไปหรือลูกเลยศีรษะ ขยับไปอยู่หลังลูกอีกครึ่งก้าว แล้วรอให้ลูกตกลงมาอยู่หน้าตัว":"จุดกระทบต่ำหรือยื่นไปข้างหน้าเกิน เข้าไปอยู่ใต้ลูกให้เร็วขึ้นอีกนิด"}}
