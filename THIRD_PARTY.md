@@ -9,4 +9,5 @@
 
 เนื้อหาการสอนอ้างอิงจากคลิป:
 - full-swing — Smash Contact Point: Lower Than "Hit at the Peak" — https://www.youtube.com/watch?v=txiWb2C6DLw
+- Jongnow TH — ครีม บุศนันทน์ สอนตบและแบ็คแฮนด์แบดมินตันให้แรง — https://www.youtube.com/watch?v=zLu8WNV8nXU (เกณฑ์การวิเคราะห์จากมุมด้านหลัง)
 - Jongnow TH — เทคนิคการตบและหยอด — https://www.youtube.com/watch?v=PdVBniVEkxQ

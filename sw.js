@@ -1,6 +1,6 @@
 /* Smash Lab service worker: caches the app shell and pose model for offline use.
    Bump VERSION whenever you change any cached file so users get the update. */
-const VERSION = "smashlab-v18";
+const VERSION = "smashlab-v19";
 const CORE = [
   "./",
   "index.html",
@@ -41,7 +41,18 @@ const CORE = [
   "audio/n-t_elbow.mp3",
   "audio/n-first.mp3",
   "audio/n-allgood.mp3",
-  "audio/n-end.mp3"
+  "audio/n-end.mp3",
+  "audio/n-m_ext.mp3",
+  "audio/n-m_reach.mp3",
+  "audio/n-m_lat.mp3",
+  "audio/n-m_elbowup.mp3",
+  "audio/n-m_follow.mp3",
+  "audio/n-t_ext.mp3",
+  "audio/n-t_reach.mp3",
+  "audio/n-t_lat_in.mp3",
+  "audio/n-t_lat_out.mp3",
+  "audio/n-t_elbowup.mp3",
+  "audio/n-t_follow.mp3"
 ];
 
 self.addEventListener("install", (e) => {
