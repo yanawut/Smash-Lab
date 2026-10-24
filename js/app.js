@@ -77,7 +77,59 @@ function fig(o,k,good){
   return `<svg viewBox="0 -18 120 116" role="img" aria-label="${o.t}">${g}</svg>`;
 }
 function pair(id,px){px=px||"";const [b,gd]=POSE[id];return `<figure class="bad">${fig(b,px+id+"b",0)}<figcaption><span class="mk">✗</span> ${b.t}</figcaption></figure><figure class="good">${fig(gd,px+id+"g",1)}<figcaption><span class="mk">✓</span> ${gd.t}</figcaption></figure>`}
-$("chapters").innerHTML=CH.map(c=>`<li><a href="${VID}${c.t}s" target="_blank" rel="noopener">${c.ts}</a><div><b>${c.h}</b><span>${c.d}</span></div></li>`).join("");
+const SPK='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+$("chapters").innerHTML=CH.map((c,i)=>`<li><a href="${VID}${c.t}s" target="_blank" rel="noopener">${c.ts}</a><div><b>${c.h}</b><span>${c.d}</span></div><button type="button" class="speak ghost" data-speak="${i}" aria-pressed="false" aria-label="ฟังคำอธิบาย: ${c.h}" title="ฟังคำอธิบาย">${SPK}</button></li>`).join("");
+/* read a chapter aloud from pre-recorded Thai audio (audio/ch-N.mp3, made with edge-tts th-TH-PremwadeeNeural from CH); tap again to stop */
+const spk=new Audio();spk.preload="none";let spkIdx=null;
+function spkReset(){spkIdx=null;document.querySelectorAll("#chapters .speak").forEach(b=>{b.setAttribute("aria-pressed","false");b.classList.remove("on")})}
+spk.addEventListener("ended",spkReset);
+spk.addEventListener("error",()=>{if(spkIdx==null) return;spkReset();const m=$("speak-msg");m.textContent="เล่นเสียงไม่สำเร็จ ลองใหม่อีกครั้ง";m.hidden=false});
+$("chapters").addEventListener("click",e=>{
+  const b=e.target.closest("[data-speak]");if(!b) return;const i=+b.dataset.speak,was=spkIdx;
+  spk.pause();spkReset();$("speak-msg").hidden=true;if(was===i) return;
+  spkIdx=i;b.setAttribute("aria-pressed","true");b.classList.add("on");
+  spk.src=`audio/ch-${i}.mp3`;spk.play().catch(()=>{if(spkIdx===i) spkReset()});
+});
+/* spoken summary of the video/photo analysis: pre-recorded Thai phrases (audio/n-KEY.mp3, edge-tts th-TH-PremwadeeNeural from NARR) strung together per result */
+const NARR={
+ intro:"สรุปผลการวิเคราะห์ท่าตบ ทีละหัวข้อ",
+ m_setp:"จุดกระทบ",m_throw:"ทิศการเคลื่อนของมือตอนกระทบ",m_seq:"ลำดับการส่งแรง",m_torso:"การหมุนลำตัว",m_gaze:"ศีรษะนิ่ง",m_elbow:"ศอกตอนกระทบ",
+ v_g:"อยู่ในเกณฑ์ดี",v_m:"พอใช้",v_b:"ควรแก้",v_n:"ข้อมูลไม่พอ วัดจากไฟล์นี้ไม่ได้",
+ t_setp_early:"ตีเร็วเกินไป หรือลูกเลยศีรษะ ขยับไปอยู่หลังลูกอีกครึ่งก้าว แล้วรอให้ลูกตกลงมาอยู่หน้าตัว",
+ t_setp_late:"จุดกระทบต่ำ หรือยื่นไปข้างหน้าเกิน เข้าไปอยู่ใต้ลูกให้เร็วขึ้นอีกนิด",
+ t_throw:"มือยังเหวี่ยงขึ้นไปหาลูก นึกภาพว่ากำลังขว้างไม้ไปที่กลางคอร์ทฝั่งตรงข้าม",
+ t_seq:"ซ้อมวงสวิงช้า ๆ ให้สะโพกออกตัวก่อน แล้วส่งแรงต่อไปที่ไหล่ ศอก และข้อมือ",
+ t_torso_open:"ตอนง้างยังหันหน้าเข้าเน็ต หมุนไหล่ข้างที่ไม่ได้ตีให้ชี้ไปหาลูกก่อน",
+ t_torso_rot:"ลำตัวหมุนเข้ามาน้อย ให้สะโพกและอกหมุนนำ ก่อนแขนเริ่มเหวี่ยง",
+ t_gaze:"ศีรษะขยับมากก่อนกระทบ มองลูกจนถึงจังหวะกระทบ อย่าเงยหน้าตามไม้",
+ t_elbow:"ศอกงอตอนกระทบ มักเกิดจากลูกเลยตัว หรือจุดกระทบชิดตัวเกินไป เหยียดแขนให้สุดตอนตี",
+ first:"เรื่องที่ควรแก้ก่อน คือ",allgood:"ทุกหัวข้อที่วัดได้อยู่ในเกณฑ์ดี รักษาจังหวะนี้ไว้",
+ end:"ซ้อมแล้วถ่ายคลิปมาวิเคราะห์ใหม่ เพื่อดูความคืบหน้า"
+};
+function narList(){
+  if(!lastM||!vScores) return [];
+  const scan=lastM.src==="scan",ids=scan?["setp","throw","seq","torso","gaze"]:["setp","elbow"],sc=Object.assign({},vScores,{elbow:lastM.es}),L=["intro"];let worst=null;
+  const tip=id=>id==="setp"?(lastM.th<10?"t_setp_early":"t_setp_late"):id==="torso"?((scan?lastM.wp:lastM.w)>0.5?"t_torso_open":"t_torso_rot"):"t_"+id;
+  ids.forEach(id=>{const s=sc[id];if(s==null&&!scan&&id==="elbow") return;L.push("m_"+id);
+    if(s==null){L.push("v_n");return}
+    L.push(s>=4?"v_g":s===3?"v_m":"v_b");
+    if(s<=3){L.push(tip(id));if(!worst||s<sc[worst]) worst=id}});
+  L.push(...(worst?["first","m_"+worst]:["allgood"]),"end");
+  return L;
+}
+let narQ=[],narOn=false;
+const nar=new Audio();
+function narBtn(){const b=$("btn-narrate");b.setAttribute("aria-pressed",narOn);b.classList.toggle("on",narOn);b.lastChild.textContent=narOn?" หยุดฟัง":" ฟังสรุปผล"}
+function narStop(){narOn=false;narQ=[];nar.pause();narBtn()}
+function narNext(){if(!narOn) return;const k=narQ.shift();if(!k){narStop();return}nar.src=`audio/n-${k}.mp3`;nar.play().catch(narStop)}
+function narShow(){narStop();$("btn-narrate").hidden=!vScores}
+nar.addEventListener("ended",narNext);nar.addEventListener("error",narStop);
+$("btn-narrate").addEventListener("click",()=>{
+  if(narOn){narStop();return}
+  spk.pause();spkReset();narQ=narList();narQ.forEach(k=>{const a=new Audio();a.preload="auto";a.src=`audio/n-${k}.mp3`});
+  narOn=true;narBtn();narNext();
+});
+$("chapters").addEventListener("click",()=>{if(narOn) narStop()},true);
 $("factors").innerHTML=F.map(f=>`<div class="factor"><div class="name">${f.n}</div><div class="seg" role="radiogroup" aria-label="${f.n}">${[1,2,3,4,5].map(v=>`<input type="radio" name="f-${f.id}" id="f-${f.id}-${v}" value="${v}"><label for="f-${f.id}-${v}">${v}</label>`).join("")}</div><div class="cue">${f.c}</div><div class="demo">${pair(f.id)}</div></div>`).join("");
 $("symptoms").innerHTML=S.map(s=>`<label for="${s.id}"><input type="checkbox" id="${s.id}" value="${s.id}"><span>${s.n}</span></label>`).join("");
 
@@ -213,13 +265,13 @@ function staticMetrics(kp){
 }
 function showStatic(kp,suffix){
   const m=staticMetrics(kp);
-  if(!m){$("metrics").innerHTML="";vs("มองไม่เห็นไหล่หรือข้อมือข้างที่ตีชัดพอ ลองภาพที่เห็นทั้งตัวจากด้านข้าง หรือเปลี่ยนมือที่ตี");$("btn-apply").hidden=true;lastM=null;renderDrill();return}
+  if(!m){narStop();$("btn-narrate").hidden=true;$("metrics").innerHTML="";vs("มองไม่เห็นไหล่หรือข้อมือข้างที่ตีชัดพอ ลองภาพที่เห็นทั้งตัวจากด้านข้าง หรือเปลี่ยนมือที่ตี");$("btn-apply").hidden=true;lastM=null;renderDrill();return}
   const s=scTheta(m.th),thr=Math.round(m.th);
   let h=row("จุดกระทบ (มุมแขนจากแนวตั้ง)",`${thr>0?"+":""}${thr}°`,s,`${zoneOf(m.th)} · คลิปแนะนำให้กระทบต่ำกว่าจุดสูงสุดเล็กน้อยและอยู่หน้าตัว (ราว +10° ถึง +30°)`);
   if(m.el!=null){const e=Math.round(m.el),es=e>=150?5:e>=130?3:2;h+=row("ศอกตอนกระทบ",`${e}°`,es,e>=150?"แขนเหยียดเกือบสุด":e>=130?"ศอกงออยู่บ้าง":"ศอกงอมาก มักเกิดจากลูกเลยตัวหรือจุดกระทบชิดตัวเกินไป")}
   $("metrics").innerHTML=h;fillThumbs("static");
   vScores={setp:s};$("btn-apply").hidden=false;
-  lastM={src:kind==="image"?"image":"frame",th:m.th,el:m.el,w:m.w};renderDrill();
+  lastM={src:kind==="image"?"image":"frame",th:m.th,el:m.el,w:m.w,es:m.el==null?null:Math.round(m.el)>=150?5:Math.round(m.el)>=130?3:2};narShow();renderDrill();
   vs(`วิเคราะห์เฟรมเดียวแล้ว${suffix||""}`);
 }
 /* stills of frames behind each "ควรแก้" row — kept in the page only, never saved */
@@ -294,7 +346,7 @@ function scanAnalyse(){
   if(rel.length>=3){const last=rel[rel.length-1];const r=Math.max(...rel.map(p=>dist(p,last)))/T;const s=r<0.12?5:r<0.2?4:r<0.3?3:r<0.4?2:1;sc.gaze=s;M.head=r;
     out.push(row("ศีรษะนิ่ง",r.toFixed(2),s,"ระยะที่ศีรษะขยับเทียบกับไหล่ ใน 0.4 วินาทีก่อนกระทบ ยิ่งน้อยยิ่งดี"))}
   else out.push(row("ศีรษะนิ่ง","–",null,"มองไม่เห็นศีรษะชัดพอ"));
-  lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=sc;$("btn-apply").hidden=!Object.keys(sc).length;
+  lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=sc;$("btn-apply").hidden=!Object.keys(sc).length;narShow();
   drawSpeed(SP,tc);renderDrill();
   vs(`สแกน ${n} เฟรมแล้ว · จุดกระทบที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
   return true;
@@ -307,7 +359,7 @@ function drawSpeed(SP,tc){
   g+=`<line x1="${X(tc).toFixed(1)}" y1="6" x2="${X(tc).toFixed(1)}" y2="108" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${Math.min(300,X(tc)+4).toFixed(1)}" y="16" font-size="10" fill="var(--ink)">กระทบ</text>`;
   $("speed").innerHTML=g;$("speed-wrap").hidden=false;
 }
-function resetVL(){lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
+function resetVL(){narStop();$("btn-narrate").hidden=true;lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
 function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b;$("btn-clear").disabled=b}
 $("media-file").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f) return;

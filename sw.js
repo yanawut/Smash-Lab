@@ -1,6 +1,6 @@
 /* Smash Lab service worker: caches the app shell and pose model for offline use.
    Bump VERSION whenever you change any cached file so users get the update. */
-const VERSION = "smashlab-v15";
+const VERSION = "smashlab-v18";
 const CORE = [
   "./",
   "index.html",
@@ -11,7 +11,37 @@ const CORE = [
   "models/movenet-lightning.bin",
   "manifest.json",
   "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icons/icon-512.png",
+  "audio/ch-0.mp3",
+  "audio/ch-1.mp3",
+  "audio/ch-2.mp3",
+  "audio/ch-3.mp3",
+  "audio/ch-4.mp3",
+  "audio/ch-5.mp3",
+  "audio/ch-6.mp3",
+  "audio/ch-7.mp3",
+  "audio/n-intro.mp3",
+  "audio/n-m_setp.mp3",
+  "audio/n-m_throw.mp3",
+  "audio/n-m_seq.mp3",
+  "audio/n-m_torso.mp3",
+  "audio/n-m_gaze.mp3",
+  "audio/n-m_elbow.mp3",
+  "audio/n-v_g.mp3",
+  "audio/n-v_m.mp3",
+  "audio/n-v_b.mp3",
+  "audio/n-v_n.mp3",
+  "audio/n-t_setp_early.mp3",
+  "audio/n-t_setp_late.mp3",
+  "audio/n-t_throw.mp3",
+  "audio/n-t_seq.mp3",
+  "audio/n-t_torso_open.mp3",
+  "audio/n-t_torso_rot.mp3",
+  "audio/n-t_gaze.mp3",
+  "audio/n-t_elbow.mp3",
+  "audio/n-first.mp3",
+  "audio/n-allgood.mp3",
+  "audio/n-end.mp3"
 ];
 
 self.addEventListener("install", (e) => {

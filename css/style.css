@@ -57,8 +57,16 @@ svg text{font-family:var(--f-body)}
 .slider-row{display:flex;align-items:center;gap:12px}
 .slider-row label{font-size:14px;color:var(--muted);white-space:nowrap}
 input[type=range]{flex:1;accent-color:var(--court);min-width:0}
+.clip-link{color:var(--court);word-break:break-all}
 .chapters{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.chapters li{display:grid;grid-template-columns:56px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.chapters li{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
+.chapters .speak{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:999px;border-color:var(--line);color:var(--court)}
+.narrate{display:inline-flex;align-items:center;gap:8px;align-self:flex-start}
+.narrate.on,button.ghost.narrate.on:not(:disabled):hover{background:var(--court);color:var(--surface)}
+@media (prefers-reduced-motion:no-preference){.narrate.on svg{animation:spk 1s ease-in-out infinite}}
+.chapters .speak.on,button.ghost.speak.on:not(:disabled):hover{background:var(--court);border-color:var(--court);color:var(--surface)}
+@media (prefers-reduced-motion:no-preference){.chapters .speak.on svg{animation:spk 1s ease-in-out infinite}}
+@keyframes spk{50%{transform:scale(1.15)}}
 .chapters li:first-child{border-top:0}
 .chapters a{font-family:var(--f-mono);font-size:14px;color:var(--court);text-decoration:none}
 .chapters a:hover,.chapters a:focus-visible{text-decoration:underline}
