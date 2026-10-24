@@ -322,6 +322,13 @@ $("media-file").addEventListener("change",e=>{
   }else{kind=null;vs("รองรับเฉพาะไฟล์วิดีโอหรือภาพ")}
   $("btn-clear").hidden=false;
 });
+/* empty stage doubles as a drop zone: click or drop a file to load it */
+const stageEl=$("stage"),stageEmpty=$("stage-empty");
+stageEmpty.addEventListener("click",()=>{if(!busy) $("media-file").click()});
+stageEmpty.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();if(!busy) $("media-file").click()}});
+stageEl.addEventListener("dragover",e=>{if(busy) return;e.preventDefault();stageEl.classList.add("drag")});
+stageEl.addEventListener("dragleave",()=>stageEl.classList.remove("drag"));
+stageEl.addEventListener("drop",e=>{e.preventDefault();stageEl.classList.remove("drag");const fs=e.dataTransfer&&e.dataTransfer.files;if(busy||!fs||!fs.length) return;const dt=new DataTransfer();dt.items.add(fs[0]);$("media-file").files=dt.files;$("media-file").dispatchEvent(new Event("change"))});
 $("btn-clear").addEventListener("click",()=>{
   if(busy) return;thumbTok++;resetVL();
   vid.onloadeddata=vid.onerror=img.onload=null;vid.pause();vid.removeAttribute("src");vid.load();vid.hidden=true;img.removeAttribute("src");img.hidden=true;
@@ -548,10 +555,10 @@ function fillFocus(){$("focus").innerHTML='<option value="">วิเครา�
 fillFocus();
 
 /* tabs */
-const TABS=["smash","video"];
+const TABS=["video","smash"];
 function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="video"&&lastKP) requestAnimationFrame(()=>drawPose(lastKP))}
 TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
-showTab(location.hash==="#video"?"video":"smash");
+showTab(location.hash==="#smash"?"smash":"video");
 
 paintInputs(); analyse(); model();
 })();
