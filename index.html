@@ -65,28 +65,46 @@
     </div>
     <p class="note rear-note" id="rear-note" hidden>มุมด้านหลังวัด 5 เรื่องตามที่ <a href="https://www.youtube.com/watch?v=zLu8WNV8nXU&amp;t=120s" target="_blank" rel="noopener">ครีม บุศนันทน์ สอนตบ (Jongnow TH) ↗</a> แนะนำ: แขนเหยียดสุดตอนกระทบ ตีเหนือศีรษะ ลูกอยู่เหนือไหล่ข้างที่ตี ยกศอกตอนตั้งท่า และก้าวตามลูกไปข้างหน้าหลังตบ</p>
     <div class="vl-body">
-      <div class="stage" id="stage">
-        <div class="stage-empty" id="stage-empty" role="button" tabindex="0" aria-label="เลือกวิดีโอหรือภาพ">
-          <svg class="drop-icon" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="5" y="11" width="28" height="26" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M33 20 L43 14 V34 L33 28 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 30 V18 M14 23 L19 18 L24 23" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="drop-cta">แตะเพื่อเลือกไฟล์ หรือลากวิดีโอ/ภาพมาวางที่นี่</span>
-          <b>ถ่ายแบบนี้จะวิเคราะห์ได้แม่นที่สุด</b>
-          <ul id="tips-rear" hidden>
-            <li>ตั้งกล้องด้านหลังผู้ตี หันไปทางเน็ต สูงประมาณระดับอก</li>
-            <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
-            <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว และถ่ายต่อหลังตีอีก 1 วินาที</li>
-            <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
-          </ul>
-          <ul id="tips-side">
-            <li>ตั้งกล้องด้านข้าง ให้ตั้งฉากกับทิศที่ตบ</li>
-            <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
-            <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว</li>
-            <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
-            <li>ถ่าย 60 fps ได้จะดีกว่า</li>
-          </ul>
+      <div class="vl-main">
+        <div class="stage" id="stage">
+          <div class="stage-empty" id="stage-empty" role="button" tabindex="0" aria-label="เลือกวิดีโอหรือภาพ">
+            <svg class="drop-icon" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="5" y="11" width="28" height="26" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M33 20 L43 14 V34 L33 28 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 30 V18 M14 23 L19 18 L24 23" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="drop-cta">แตะเพื่อเลือกไฟล์ หรือลากวิดีโอ/ภาพมาวางที่นี่</span>
+            <b>ถ่ายแบบนี้จะวิเคราะห์ได้แม่นที่สุด</b>
+            <ul id="tips-rear" hidden>
+              <li>ตั้งกล้องด้านหลังผู้ตี หันไปทางเน็ต สูงประมาณระดับอก</li>
+              <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
+              <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว และถ่ายต่อหลังตีอีก 1 วินาที</li>
+              <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
+            </ul>
+            <ul id="tips-side">
+              <li>ตั้งกล้องด้านข้าง ให้ตั้งฉากกับทิศที่ตบ</li>
+              <li>ให้เห็นทั้งตัวตั้งแต่เท้าจนถึงไม้ที่ยกสูงสุด</li>
+              <li>คลิปสั้น 2–5 วินาที ตบลูกเดียว</li>
+              <li>แสงพอ พื้นหลังไม่มีคนอื่น</li>
+              <li>ถ่าย 60 fps ได้จะดีกว่า</li>
+            </ul>
+          </div>
+          <video id="vid" playsinline muted controls hidden></video>
+          <img id="img" alt="ภาพท่าตบที่เลือก" hidden>
+          <canvas id="ov" aria-hidden="true"></canvas>
         </div>
-        <video id="vid" playsinline muted controls hidden></video>
-        <img id="img" alt="ภาพท่าตบที่เลือก" hidden>
-        <canvas id="ov" aria-hidden="true"></canvas>
+        <div class="vl-under">
+          <div class="actions">
+            <button id="btn-share" class="ghost narrate" type="button" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="18" cy="5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="19" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3" stroke="currentColor" stroke-width="2" fill="none"/></svg> แชร์ผล</button>
+            <button id="btn-narrate" class="ghost narrate" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> ฟังสรุปผล</button>
+          </div>
+          <div id="share-box" class="share-box" hidden>
+            <img id="share-img" alt="ภาพสรุปผลวิเคราะห์สำหรับแชร์">
+            <div class="actions">
+              <button id="share-native" type="button" hidden>แชร์ภาพไป LINE / Facebook</button>
+              <button id="share-save" class="ghost" type="button">บันทึกภาพ</button>
+              <a id="share-line" class="share-link line" href="#" target="_blank" rel="noopener">LINE</a>
+              <a id="share-fb" class="share-link fb" href="#" target="_blank" rel="noopener">Facebook</a>
+            </div>
+            <p class="note" id="share-note">ภาพมีเฟรมจากวิดีโอของคุณ และจะออกจากเครื่องก็ต่อเมื่อคุณกดแชร์เอง</p>
+          </div>
+        </div>
       </div>
       <div class="vl-side">
         <div class="actions">
@@ -97,7 +115,6 @@
         <p id="vl-status" class="note" role="status">ยังไม่ได้เลือกไฟล์ เลือกคลิปท่าตบจากมุมด้านข้าง หรือภาพนิ่งตอนกระทบลูก</p>
         <div id="drill-check" aria-live="polite" hidden></div>
         <div id="metrics"></div>
-        <button id="btn-narrate" class="ghost narrate" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> ฟังสรุปผล</button>
         <div id="speed-wrap" hidden>
           <h3>ความเร็วข้อต่อตามเวลา</h3>
           <svg id="speed" viewBox="0 0 320 120" width="100%" role="img" aria-label="กราฟความเร็วของสะโพก ไหล่ ศอก และข้อมือ"></svg>

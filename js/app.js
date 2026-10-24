@@ -131,7 +131,7 @@ const nar=new Audio();
 function narBtn(){const b=$("btn-narrate");b.setAttribute("aria-pressed",narOn);b.classList.toggle("on",narOn);b.lastChild.textContent=narOn?" หยุดฟัง":" ฟังสรุปผล"}
 function narStop(){narOn=false;narQ=[];nar.pause();narBtn()}
 function narNext(){if(!narOn) return;const k=narQ.shift();if(!k){narStop();return}nar.src=`audio/n-${k}.mp3`;nar.play().catch(narStop)}
-function narShow(){narStop();$("btn-narrate").hidden=!vScores}
+function narShow(){narStop();$("btn-narrate").hidden=!vScores;$("btn-share").hidden=!lastM;$("share-box").hidden=true}
 nar.addEventListener("ended",narNext);nar.addEventListener("error",narStop);
 $("btn-narrate").addEventListener("click",()=>{
   if(narOn){narStop();return}
@@ -321,14 +321,14 @@ function thumbIndex(name){
   if(/ยกศอก/.test(name)) return near(tc-0.4);
   return c;
 }
-function snap(src,kp){
-  const [nw,nh]=natSize(),W=320,H=Math.round(W*nh/nw),cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
-  x.drawImage(src,0,0,W,H);if(!kp) return cv.toDataURL("image/jpeg",0.82);
+function snap(src,kp,W,raw){
+  W=W||320;const [nw,nh]=natSize(),H=Math.round(W*nh/nw),k=W/320,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  x.drawImage(src,0,0,W,H);if(!kp) return raw?cv:cv.toDataURL("image/jpeg",0.82);
   const sx=W/nw,sy=H/nh,P=p=>[p.x*sx,p.y*sy],a=arm(),hit=new Set([a.sh+"-"+a.el,a.el+"-"+a.wr]),ink=cssVar("--court"),hot=cssVar("--cork");
   x.lineCap="round";
-  EDGES.forEach(([i,j])=>{if(!okp(kp[i])||!okp(kp[j])) return;const h=hit.has(i+"-"+j);x.strokeStyle=h?hot:ink;x.lineWidth=h?4:3;x.beginPath();x.moveTo(...P(kp[i]));x.lineTo(...P(kp[j]));x.stroke()});
-  kp.forEach((p,i)=>{if(!okp(p)||(i>0&&i<5)) return;x.fillStyle=i===a.wr?hot:"#fff";x.strokeStyle=ink;x.lineWidth=1.2;x.beginPath();x.arc(...P(p),i===a.wr?5:3.2,0,7);x.fill();x.stroke()});
-  return cv.toDataURL("image/jpeg",0.82);
+  EDGES.forEach(([i,j])=>{if(!okp(kp[i])||!okp(kp[j])) return;const h=hit.has(i+"-"+j);x.strokeStyle=h?hot:ink;x.lineWidth=(h?4:3)*k;x.beginPath();x.moveTo(...P(kp[i]));x.lineTo(...P(kp[j]));x.stroke()});
+  kp.forEach((p,i)=>{if(!okp(p)||(i>0&&i<5)) return;x.fillStyle=i===a.wr?hot:"#fff";x.strokeStyle=ink;x.lineWidth=1.2*k;x.beginPath();x.arc(...P(p),(i===a.wr?5:3.2)*k,0,7);x.fill();x.stroke()});
+  return raw?cv:cv.toDataURL("image/jpeg",0.82);
 }
 function thumbFig(url,t){return `<figure><img src="${url}" alt="ภาพนิ่งจากเฟรมที่ควรแก้"${t!=null?` data-t="${t}" tabindex="0" role="button"`:""}><figcaption>${t!=null?`เฟรมที่ ${t.toFixed(2)} วินาที · แตะเพื่อไปที่เฟรมนี้`:"ภาพที่วิเคราะห์"}</figcaption></figure>`}
 async function fillThumbs(mode){
@@ -423,7 +423,7 @@ function drawSpeed(SP,tc){
   g+=`<line x1="${X(tc).toFixed(1)}" y1="6" x2="${X(tc).toFixed(1)}" y2="108" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${Math.min(300,X(tc)+4).toFixed(1)}" y="16" font-size="10" fill="var(--ink)">กระทบ</text>`;
   $("speed").innerHTML=g;$("speed-wrap").hidden=false;
 }
-function resetVL(){narStop();$("btn-narrate").hidden=true;lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
+function resetVL(){narStop();$("btn-narrate").hidden=true;$("btn-share").hidden=true;$("share-box").hidden=true;lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
 function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b;$("btn-clear").disabled=b}
 $("media-file").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f) return;
@@ -484,6 +484,73 @@ $("btn-apply").addEventListener("click",()=>{
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("assess").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});
   vs(`ปรับคะแนน ${ks.length} หัวข้อในแบบประเมินแล้ว: ${ks.map(k=>F.find(f=>f.id===k).n).join(", ")}`);
 });
+
+/* share: one portrait image with the contact frame (pose drawn on it) and the result list, for LINE / Facebook */
+const SITE="https://smash-lab.yanawutchaiyo.workers.dev/";
+const SHARE_C={bg:"#fff8f1",card:"#ffffff",ink:"#1c1846",muted:"#5b5878",line:"#eee2d4",g:["#ebf7ef","#1b7f3b"],m:["#fff0e6","#8f5b00"],b:["#fff0e6","#cf2a35"],n:["#f3efe9","#5b5878"],accent:"#c2410c"};
+let shareBlob=null,shareUrl=null;
+function wrapText(x,text,maxW){
+  const seg=window.Intl&&Intl.Segmenter?[...new Intl.Segmenter("th",{granularity:"word"}).segment(text)].map(s=>s.segment):[...text];
+  const lines=[];let cur="";
+  seg.forEach(w=>{const t=cur+w;if(x.measureText(t).width>maxW&&cur){lines.push(cur.trimEnd());cur=w.trimStart()}else cur=t});
+  if(cur) lines.push(cur.trimEnd());return lines;
+}
+function loadImg(src){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=src})}
+async function buildShareImage(){
+  if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+  let kp=lastKP;
+  if(kind==="video"&&frames&&cIdx!=null){await seekTo(frames[cIdx].t);kp=frames[cIdx].kp;lastKP=kp;drawPose(kp)}
+  const W=1080,PAD=56,C=SHARE_C,F=(w,s)=>`${w} ${s}px "Kanit","IBM Plex Sans Thai",sans-serif`,B=s=>`400 ${s}px "IBM Plex Sans Thai","Nunito Sans",sans-serif`;
+  const [nw,nh]=natSize(),maxH=1000,fw=Math.min(W-PAD*2,Math.round(maxH*nw/nh)),frame=snap(mediaEl(),kp,fw,true);
+  const rows=[...document.querySelectorAll("#metrics .metric")].map(m=>({n:m.querySelector(".mn").textContent,v:m.querySelector(".mv").textContent,
+    p:m.querySelector(".pill"),d:m.querySelector(".md").textContent,th:m.querySelector(".mthumb img")}));
+  const thumbs=await Promise.all(rows.map(r=>r.th?loadImg(r.th.src).catch(()=>null):null));
+  const meas=document.createElement("canvas").getContext("2d"),TW=W-PAD*2-72,TH=180;
+  const lay=rows.map((r,i)=>{meas.font=B(26);const tw=TW-(thumbs[i]?TH*0.62+20:0);const d=wrapText(meas,r.d,tw);return {d,h:Math.max(64+d.length*38,thumbs[i]?56+TH+20:0)+28}});
+  const head=200,frameH=frame.height+40,listH=lay.reduce((a,l)=>a+l.h,0)+40,foot=120,H=head+frameH+listH+foot;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");x.textBaseline="top";
+  x.fillStyle=C.bg;x.fillRect(0,0,W,H);
+  x.fillStyle=C.ink;x.font=F(800,64);x.fillText("Smash",PAD,56);const sw=x.measureText("Smash ").width;x.fillStyle=C.accent;x.fillText("Lab",PAD+sw,56);
+  const view=lastM&&lastM.view==="rear"?"มุมด้านหลัง":"มุมด้านข้าง",when=frames&&cIdx!=null?` · จุดกระทบที่ ${frames[cIdx].t.toFixed(2)} วินาที`:"";
+  x.fillStyle=C.muted;x.font=B(28);x.fillText(`ผลวิเคราะห์ท่าตบ · ${view}${when}`,PAD,140);
+  const fx=(W-frame.width)/2,fy=head;x.save();x.beginPath();x.roundRect?x.roundRect(fx,fy,frame.width,frame.height,24):x.rect(fx,fy,frame.width,frame.height);x.clip();x.drawImage(frame,fx,fy);x.restore();
+  let y=head+frameH;x.fillStyle=C.card;x.strokeStyle=C.line;x.lineWidth=2;
+  x.beginPath();x.roundRect?x.roundRect(PAD,y,W-PAD*2,listH-20,28):x.rect(PAD,y,W-PAD*2,listH-20);x.fill();x.stroke();y+=24;
+  rows.forEach((r,i)=>{
+    const L=lay[i],X=PAD+24,cls=r.p?(r.p.classList.contains("g")?"g":r.p.classList.contains("m")?"m":r.p.classList.contains("b")?"b":"n"):"n";
+    if(i) {x.strokeStyle=C.line;x.beginPath();x.moveTo(X,y-14);x.lineTo(W-PAD-24,y-14);x.stroke()}
+    x.fillStyle=C.ink;x.font=F(700,32);x.fillText(r.n,X,y);
+    const pt=r.p?r.p.textContent:"";x.font=F(700,24);const pw=x.measureText(pt).width+32,px=W-PAD-24-pw;
+    x.fillStyle=C[cls][0];x.beginPath();x.roundRect?x.roundRect(px,y,pw,40,20):x.rect(px,y,pw,40);x.fill();x.fillStyle=C[cls][1];x.fillText(pt,px+16,y+6);
+    x.fillStyle=C.ink;x.font=`500 30px "IBM Plex Mono",monospace`;const vw=x.measureText(r.v).width;x.fillText(r.v,px-20-vw,y+2);
+    x.fillStyle=C.muted;x.font=B(26);L.d.forEach((t,k)=>x.fillText(t,X,y+56+k*38));
+    if(thumbs[i]){const t=thumbs[i],h=TH,w=Math.round(h*t.width/t.height);x.drawImage(t,W-PAD-24-w,y+56,w,h);x.strokeStyle=C.b[1];x.lineWidth=3;x.strokeRect(W-PAD-24-w,y+56,w,h);x.lineWidth=2}
+    y+=L.h;
+  });
+  x.fillStyle=C.muted;x.font=B(26);x.fillText("วิเคราะห์ท่าตบแบดมินตันฟรี ประมวลผลในเครื่อง ไม่อัปโหลด",PAD,H-foot+28);
+  x.fillStyle=C.accent;x.font=F(700,28);x.fillText(SITE.replace("https://","").replace(/\/$/,""),PAD,H-foot+66);
+  return new Promise(r=>cv.toBlob(r,"image/jpeg",0.9));
+}
+$("btn-share").addEventListener("click",async()=>{
+  if(busy||!lastM) return;setBusy(true);const b=$("btn-share");b.disabled=true;
+  try{
+    shareBlob=await buildShareImage();if(shareUrl) URL.revokeObjectURL(shareUrl);shareUrl=URL.createObjectURL(shareBlob);
+    $("share-img").src=shareUrl;
+    const file=new File([shareBlob],"smash-lab-result.jpg",{type:"image/jpeg"});
+    $("share-native").hidden=!(navigator.canShare&&navigator.canShare({files:[file]}));
+    const msg="ผลวิเคราะห์ท่าตบจาก Smash Lab";
+    $("share-line").href="https://social-plugins.line.me/lineit/share?url="+encodeURIComponent(SITE)+"&text="+encodeURIComponent(msg);
+    $("share-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(SITE);
+    $("share-note").textContent=$("share-native").hidden?"เบราว์เซอร์นี้ส่งภาพตรงไปแอปไม่ได้ กด “บันทึกภาพ” แล้วแนบภาพในโพสต์ LINE หรือ Facebook เอง ปุ่ม LINE และ Facebook จะแชร์ลิงก์เว็บ":"ภาพมีเฟรมจากวิดีโอของคุณ และจะออกจากเครื่องก็ต่อเมื่อคุณกดแชร์เอง";
+    $("share-box").hidden=false;$("share-box").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(e){vs("สร้างภาพสำหรับแชร์ไม่สำเร็จ ลองใหม่อีกครั้ง")}
+  b.disabled=false;setBusy(false);
+});
+$("share-native").addEventListener("click",async()=>{
+  if(!shareBlob) return;const file=new File([shareBlob],"smash-lab-result.jpg",{type:"image/jpeg"});
+  try{await navigator.share({files:[file],title:"Smash Lab",text:"ผลวิเคราะห์ท่าตบจาก Smash Lab "+SITE})}catch(e){}
+});
+$("share-save").addEventListener("click",()=>{if(!shareUrl) return;const a=document.createElement("a");a.href=shareUrl;a.download="smash-lab-result.jpg";document.body.appendChild(a);a.click();a.remove()});
 
 /* practice check: judge one drill from the uploaded photo or clip */
 const NEED={throw:"วิดีโอ",relax:"เช็คลิสต์",torso:"ภาพท่าง้าง หรือวิดีโอ",seq:"วิดีโอ",minp:"เช็คลิสต์",gaze:"วิดีโอ",setp:"ภาพจังหวะกระทบ หรือวิดีโอ",lag:"วิดีโอ"};
