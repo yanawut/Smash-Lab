@@ -19,8 +19,9 @@
 <body>
 <div class="wrap">
   <header class="hero">
-    <h1>Smash Lab</h1>
-    <p class="lede">นำหลักการจากคลิปสอนมาทำเป็นโมเดล แบบประเมินตัวเอง และแบบฝึก ว่าด้วยจุดกระทบของลูกตบ ซึ่งแรงมาจากการหมุนลำตัวและส่งไม้ไปข้างหน้าเหมือนขว้างของ ไม่ได้มาจากแรงแขน</p>
+    <svg class="hero-shuttle" viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><path d="M20 8 L32 40 L44 8 Z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 8 L32 40 M38 8 L32 40 M20 20 H44" stroke="var(--ink)" stroke-width="1.6" fill="none"/><ellipse cx="32" cy="46" rx="9" ry="8" fill="var(--cork)"/></svg>
+    <h1>Smash <span class="accent">Lab</span></h1>
+    <p class="lede">วิเคราะห์ท่าตบแบดมินตันจากวิดีโอหรือภาพในเครื่องของคุณ พร้อมโมเดลจุดกระทบ แบบประเมินตัวเอง และแบบฝึก แรงตบมาจากการหมุนลำตัวและส่งไม้ไปข้างหน้าเหมือนขว้างของ ไม่ได้มาจากแรงแขน</p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
@@ -58,7 +59,9 @@
     </div>
     <div class="vl-body">
       <div class="stage" id="stage">
-        <div class="stage-empty" id="stage-empty">
+        <div class="stage-empty" id="stage-empty" role="button" tabindex="0" aria-label="เลือกวิดีโอหรือภาพ">
+          <svg class="drop-icon" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="5" y="11" width="28" height="26" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M33 20 L43 14 V34 L33 28 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 30 V18 M14 23 L19 18 L24 23" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="drop-cta">แตะเพื่อเลือกไฟล์ หรือลากวิดีโอ/ภาพมาวางที่นี่</span>
           <b>ถ่ายแบบนี้จะวิเคราะห์ได้แม่นที่สุด</b>
           <ul>
             <li>ตั้งกล้องด้านข้าง ให้ตั้งฉากกับทิศที่ตบ</li>
