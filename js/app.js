@@ -110,14 +110,19 @@ const NARR={
  t_lat_out:"ลูกออกไปด้านข้างตัว แขนเหวี่ยงจากด้านข้าง ขยับเข้าไปให้ลูกอยู่เหนือไหล่ข้างที่ตี",
  t_elbowup:"ตอนตั้งท่ายกศอกขึ้นให้สูงระดับไหล่ หน้าไม้เปิดไปข้างหน้า",
  t_follow:"หลังตบให้ก้าวตามลูกไปข้างหน้า อย่าถอยหรือเอนไปข้างหลัง",
+ m_release:"ปลดศอกก่อนกระทบ",m_elbowdrop:"ไม่ดึงศอกลงก่อนกระทบ",m_after:"ทิศของมือหลังกระทบ",m_shoulder:"ไหล่ข้างที่ตีไม่ตก",
+ t_release:"ศอกยังงอค้างจนถึงจังหวะกระทบ ให้ปลดศอกที่งอออกและส่งแขนไปข้างหน้า หมุนทั้งแขน ไม่ใช่บิดแค่ข้อมือ",
+ t_elbowdrop:"ศอกตกลงก่อนกระทบ ให้ลำตัวหมุนนำโดยแขนยังค้างอยู่ด้านบน แล้วค่อยส่งแขนไปข้างหน้า อย่าดึงแขนลง",
+ t_after:"หลังกระทบมือดึงตรงลงพื้น ให้แขนหมุนและส่งไปข้างหน้าต่อ ปล่อยให้หน้าไม้หมุนเองหลังกระทบ",
+ t_shoulder:"ไหล่ข้างที่ตีตกลงตอนกระทบ อย่ากดไหล่ลง ให้ลำตัวหมุนแล้วยืดไหล่ขึ้นไปหาลูก",
  first:"เรื่องที่ควรแก้ก่อน คือ",allgood:"ทุกหัวข้อที่วัดได้อยู่ในเกณฑ์ดี รักษาจังหวะนี้ไว้",
  end:"ซ้อมแล้วถ่ายคลิปมาวิเคราะห์ใหม่ เพื่อดูความคืบหน้า"
 };
 function narList(){
   if(!lastM||!vScores) return [];
   const scan=lastM.src==="scan",rear=lastM.view==="rear",L=["intro"];let worst=null;
-  const ids=rear?(scan?["ext","reach","lat","elbowup","follow"]:["ext","reach","lat"]):scan?["setp","throw","seq","torso","gaze"]:["setp","elbow"];
-  const sc=rear?{ext:lastM.es,reach:lastM.rs,lat:lastM.ls,elbowup:lastM.eus,follow:lastM.fws}:Object.assign({},vScores,{elbow:lastM.es});
+  const ids=rear?(scan?["ext","reach","lat","shoulder","elbowup","release","elbowdrop","follow"]:["ext","reach","lat","shoulder"]):scan?["setp","throw","seq","torso","gaze","release","elbowdrop","after"]:["setp","elbow"];
+  const sc=Object.assign(rear?{ext:lastM.es,reach:lastM.rs,lat:lastM.ls,elbowup:lastM.eus,follow:lastM.fws}:Object.assign({},vScores,{elbow:lastM.es}),{release:lastM.rls,elbowdrop:lastM.eds,after:lastM.afs,shoulder:lastM.sts});
   const tip=id=>id==="setp"?(lastM.th<10?"t_setp_early":"t_setp_late"):id==="torso"?((scan?lastM.wp:lastM.w)>0.5?"t_torso_open":"t_torso_rot"):id==="lat"?(lastM.lat<0?"t_lat_in":"t_lat_out"):"t_"+id;
   ids.forEach(id=>{const s=sc[id];if(s==null&&!scan&&(id==="elbow"||id==="ext")) return;L.push("m_"+id);
     if(s==null){L.push("v_n");return}
@@ -272,8 +277,9 @@ function rearMetrics(kp){
   let el=null,reach=null,lat=null;
   if(okp(E0)){const u=[S0.x-E0.x,S0.y-E0.y],v=[W0.x-E0.x,W0.y-E0.y];el=deg(Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1])/(Math.hypot(...u)*Math.hypot(...v))))));
     const L=dist(S0,E0)+dist(E0,W0);if(L>0) reach=(S0.y-W0.y)/L}
-  if(okp(O)){const sw=Math.abs(S0.x-O.x),out=Math.sign(S0.x-O.x)||1;if(sw>0) lat=(W0.x-S0.x)*out/sw}
-  return {el,reach,lat};
+  let tilt=null;
+  if(okp(O)){const sw=Math.abs(S0.x-O.x),out=Math.sign(S0.x-O.x)||1;if(sw>0){lat=(W0.x-S0.x)*out/sw;tilt=(O.y-S0.y)/sw}}
+  return {el,reach,lat,tilt};
 }
 const scExt=e=>e>=160?5:e>=150?4:e>=135?3:2;
 const scReach=r=>r>=0.85?5:r>=0.75?4:r>=0.6?3:2;
@@ -286,9 +292,11 @@ function rearRows(m){
   else out.push(row("ความสูงจุดกระทบ","–",null,"มองไม่เห็นแขนข้างที่ตีชัดพอ"));
   if(m.lat!=null){const l=m.lat;out.push(row("ตำแหน่งลูกซ้ายขวา",l<-0.6?"เยื้องเข้าศีรษะ":l>0.5?"ออกข้างตัว":"เหนือไหล่",scLat(l),"ตำแหน่งข้อมือเทียบไหล่ข้างที่ตี (ระยะเท่าความกว้างไหล่) · ควรอยู่เหนือไหล่ข้างที่ตี ไม่อ้อมศีรษะและไม่ออกข้างตัว"))}
   else out.push(row("ตำแหน่งลูกซ้ายขวา","–",null,"มองไม่เห็นไหล่สองข้างชัดพอ"));
+  if(m.tilt!=null){const t=m.tilt;out.push(row("ไหล่ข้างที่ตีไม่ตก",t>=0?`สูงกว่าอีกข้าง ${Math.round(t*100)}%`:`ต่ำกว่าอีกข้าง ${Math.round(-t*100)}%`,scTilt(t),"ระดับไหล่ข้างที่ตีเทียบไหล่อีกข้างตอนกระทบ (เทียบความกว้างไหล่) · อย่ากดไหล่ลง ให้ไหล่ข้างที่ตียืดขึ้นไปหาลูก (full-swing)"))}
   return out;
 }
-function rearScores(m){return {es:m.el==null?null:scExt(m.el),rs:m.reach==null?null:scReach(m.reach),ls:m.lat==null?null:scLat(m.lat)}}
+const scTilt=t=>t>=0.1?5:t>=0?4:t>=-0.1?3:2;
+function rearScores(m){return {es:m.el==null?null:scExt(m.el),rs:m.reach==null?null:scReach(m.reach),ls:m.lat==null?null:scLat(m.lat),sts:m.tilt==null?null:scTilt(m.tilt)}}
 function rearVScores(r){const v=[r.rs,r.ls].filter(x=>x!=null);return v.length?{setp:Math.min(...v)}:null}
 function staticMetrics(kp){
   const a=arm(),S0=kp[a.sh],E0=kp[a.el],W0=kp[a.wr];if(!okp(S0)||!okp(W0)) return null;
@@ -319,6 +327,8 @@ function thumbIndex(name){
   if(/ศีรษะ/.test(name)){const kc=frames[c].kp;if(!okp(kc[0])||!okp(kc[5])||!okp(kc[6])) return near(tc-0.2);const rel=k=>({x:k[0].x-(k[5].x+k[6].x)/2,y:k[0].y-(k[5].y+k[6].y)/2}),r0=rel(kc);let bi=c,bd=-1;inW(-0.4,0).forEach(i=>{const k=frames[i].kp;if(okp(k[0])&&okp(k[5])&&okp(k[6])){const d=dist(rel(k),r0);if(d>bd){bd=d;bi=i}}});return bi}
   if(/กลับกลางคอร์ท|ก้าวตามลูก/.test(name)) return near(tc+0.6);
   if(/ยกศอก/.test(name)) return near(tc-0.4);
+  if(/ปลดศอก|ดึงศอกลง/.test(name)) return near(tc-0.12);
+  if(/หลังกระทบ/.test(name)) return near(tc+0.1);
   return c;
 }
 function snap(src,kp,W,raw){
@@ -385,10 +395,30 @@ function scanAnalyse(){
   if(rel.length>=3){const last=rel[rel.length-1];const r=Math.max(...rel.map(p=>dist(p,last)))/T;const s=r<0.12?5:r<0.2?4:r<0.3?3:r<0.4?2:1;sc.gaze=s;M.head=r;
     out.push(row("ศีรษะนิ่ง",r.toFixed(2),s,"ระยะที่ศีรษะขยับเทียบกับไหล่ ใน 0.4 วินาทีก่อนกระทบ ยิ่งน้อยยิ่งดี"))}
   else out.push(row("ศีรษะนิ่ง","–",null,"มองไม่เห็นศีรษะชัดพอ"));
+  const ar=armRot({a,n,T,c,tc,inW,dir},true);out.push(...ar.rows);Object.assign(M,ar.M);
   lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=sc;$("btn-apply").hidden=!Object.keys(sc).length;narShow();
   drawSpeed(SP,tc);renderDrill();
   vs(`สแกน ${n} เฟรมแล้ว · จุดกระทบที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
   return true;
+}
+/* arm rotation (full-swing "Stop Twisting Your Wrist"): release the bent elbow forward, don't pull the elbow down, let the arm come through forward */
+function elbowAng(k,a){const S0=k[a.sh],E0=k[a.el],W0=k[a.wr];if(!okp(S0)||!okp(E0)||!okp(W0)) return null;const u=[S0.x-E0.x,S0.y-E0.y],v=[W0.x-E0.x,W0.y-E0.y];return deg(Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1])/(Math.hypot(...u)*Math.hypot(...v))))))}
+function armRot(o,side){
+  const {a,n,T,c,tc,inW,dir}=o,rows=[],M={};
+  const ac=elbowAng(frames[c].kp,a),pre=inW(-0.45,-0.04).map(i=>elbowAng(frames[i].kp,a)).filter(x=>x!=null);
+  if(ac!=null&&pre.length){const mn=Math.min(...pre),dl=ac-mn,s=ac>=150&&dl>=40?5:ac>=140&&dl>=25?4:ac>=130||dl>=25?3:2;M.rel=dl;M.rls=s;
+    rows.push(row("ปลดศอกก่อนกระทบ",`${Math.round(mn)}° → ${Math.round(ac)}°`,s,"มุมศอกที่งอที่สุดก่อนตี ไปจนถึงตอนกระทบ · ศอกที่งอควรคลายออกจนแขนเกือบตรงตอนไม้โดนลูก ส่งทั้งแขนไปข้างหน้า ไม่ใช่บิดแค่ข้อมือ (full-swing)"))}
+  else rows.push(row("ปลดศอกก่อนกระทบ","–",null,"คลิปมีช่วงก่อนกระทบไม่พอ หรือมองไม่เห็นศอก"));
+  const dr=inW(-0.25,-0.02).map(i=>{const k=frames[i].kp,S0=k[a.sh],E0=k[a.el];return okp(S0)&&okp(E0)?(E0.y-S0.y)/T:null}).filter(x=>x!=null);
+  if(dr.length){const d=Math.max(...dr),s=d<=0?5:d<=0.1?4:d<=0.2?3:2;M.edrop=d;M.eds=s;
+    rows.push(row("ไม่ดึงศอกลงก่อนกระทบ",d<=0?"ศอกอยู่สูงตลอด":`ศอกตกต่ำกว่าไหล่ ${Math.round(d*100)}%`,s,"ตำแหน่งต่ำสุดของศอกเทียบไหล่ ใน 0.25 วินาทีก่อนกระทบ (เทียบความยาวลำตัว) · ลำตัวหมุนนำโดยแขนยังค้างด้านบน อย่าดึงศอกหรือไหล่ลง (full-swing)"))}
+  else rows.push(row("ไม่ดึงศอกลงก่อนกระทบ","–",null,"มองไม่เห็นศอกช่วงก่อนกระทบ"));
+  if(side){const aw=inW(0.02,0.16).filter(i=>okp(frames[i].kp[a.wr])),W0=frames[c].kp[a.wr];
+    if(aw.length&&okp(W0)){const W1=frames[aw[aw.length-1]].kp[a.wr],fx=dir*(W1.x-W0.x),dy=W1.y-W0.y,psi=deg(Math.atan2(dy,fx));
+      const s=psi>=0&&psi<=60?5:psi>60&&psi<=70?4:psi>70&&psi<=80?3:2;M.psi=psi;M.afs=s;
+      rows.push(row("ทิศของมือหลังกระทบ",psi<0?"ยกขึ้น":psi>100?"ย้อนกลับ":psi>80?"ดึงตรงลง":`ไปหน้าเฉียงลง ${Math.round(psi)}°`,s,"ทิศที่ข้อมือเคลื่อนในช่วงสั้น ๆ หลังกระทบ (ค่าประมาณ แทนการหมุนแขน) · แขนควรหมุนและส่งไปข้างหน้าต่อ หน้าไม้หมุนเองหลังกระทบ ไม่ใช่ดึงตรงลงพื้น (full-swing)"))}
+    else rows.push(row("ทิศของมือหลังกระทบ","–",null,"คลิปหลังกระทบสั้นเกินไป หรือมองไม่เห็นข้อมือ"))}
+  return {rows,M};
 }
 function rearStatic(kp,suffix){
   const m=rearMetrics(kp);
@@ -410,6 +440,7 @@ function rearScan(o){
   if(before&&after&&frames[n-1].t-tc>=0.5){const ratio=after/before,s=ratio<=0.95?5:ratio<=0.98?4:ratio<=1.02?3:2;M.fw=ratio;M.fws=s;
     out.push(row("ก้าวตามลูกหลังตบ",ratio<1?`ไปข้างหน้า ${Math.round((1-ratio)*100)}%`:`ถอยหลัง ${Math.round((ratio-1)*100)}%`,s,"ขนาดลำตัวในภาพหลังตบเทียบกับตอนตี (ค่าประมาณ) · ตัวเล็กลงแปลว่าก้าวตามลูกไปทางเน็ต ตัวใหญ่ขึ้นแปลว่าถอยหลังเข้าหากล้อง"))}
   else out.push(row("ก้าวตามลูกหลังตบ","–",null,"คลิปหลังตบสั้นกว่า 0.5 วินาที ถ่ายต่ออีกสักพักหลังตี"));
+  const ar=armRot({a,n,T,c,tc,inW,dir:1},false);out.push(...ar.rows);Object.assign(M,ar.M);
   lastM=M;$("metrics").innerHTML=out.join("");fillThumbs("scan");vScores=rearVScores(r);$("btn-apply").hidden=!vScores;narShow();
   drawSpeed(o.SP,tc);renderDrill();
   vs(`สแกน ${n} เฟรมแล้ว (มุมด้านหลัง) · จุดกระทบ (ตอนข้อมือสูงสุด) ที่ ${tc.toFixed(2)} วินาที ถ้าไม่ตรง เลื่อนวิดีโอไปเฟรมที่ไม้กระทบลูก แล้วกด “ตั้งเฟรมนี้เป็นจุดกระทบ”`);
