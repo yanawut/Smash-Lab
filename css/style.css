@@ -208,3 +208,5 @@ button:focus-visible{outline:2px solid var(--cork);outline-offset:2px}
 .foot{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 .foot a{color:var(--court)}
 @media (prefers-reduced-motion:no-preference){.bar .fill{transition:width .35s ease}#arm,#shuttle-path,#contact{transition:all .15s ease}}
+.wr-drill{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.wr-drill:first-of-type{border-top:0;padding-top:0}
