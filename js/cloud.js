@@ -20,14 +20,14 @@ async function start() {
   auth.languageCode = "th";
   let user = null, hasResult = false, savedFor = null, seq = 0;
 
-  const acc = $("account"), saveBtn = $("btn-cloud-save"), hist = $("history"), list = $("hist-list"), msg = $("hist-msg");
+  const acc = $("account"), saveBtn = $("btn-cloud-save"), histTab = $("tab-btn-history"), list = $("hist-list"), msg = $("hist-msg");
   acc.hidden = false;
   const col = () => F.collection(db, "users", user.uid, "results");
   const say = (t) => { msg.textContent = t || ""; msg.hidden = !t; };
 
   function paintAccount() {
     $("acc-in").hidden = !!user; $("acc-out").hidden = !user;
-    if (!user && hist.open) hist.close();
+    if (!user && !histTab.hidden) { histTab.hidden = true; if (histTab.getAttribute("aria-selected") === "true") window.SmashLab.showTab("video"); }
     if (user) {
       $("acc-name").textContent = user.displayName || user.email || "";
       const img = $("acc-photo"); img.hidden = !user.photoURL; if (user.photoURL) img.src = user.photoURL;
@@ -53,10 +53,14 @@ async function start() {
 
   A.onAuthStateChanged(auth, (u) => { user = u; $("acc-err").textContent = ""; paintAccount(); if (!u) list.innerHTML = ""; });
 
-  // history opens as a full-screen sheet of cards, newest first; reloaded on each open
-  $("btn-history").addEventListener("click", () => { if (!user) return; hist.showModal(); load(); });
-  $("hist-close").addEventListener("click", () => hist.close());
-  hist.addEventListener("click", (e) => { if (e.target === hist) hist.close(); });
+  // the header button reveals the history tab (first in the tab bar) and opens it; cards reload on each open
+  $("btn-history").addEventListener("click", () => {
+    if (!user) return;
+    histTab.hidden = false; window.SmashLab.showTab("history");
+    histTab.scrollIntoView({ block: "nearest", inline: "nearest" });
+    load();
+  });
+  histTab.addEventListener("click", () => { if (user) load(); });
 
   document.addEventListener("smashlab:result", (e) => { hasResult = !!(e.detail && e.detail.has); seq++; paintSave(); });
 

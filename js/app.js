@@ -867,10 +867,12 @@ chainDraw();
 $("wr-goto").addEventListener("click",()=>{showTab("video");$("view-side").checked=true;$("view-side").dispatchEvent(new Event("change"));const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("video-lab").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});vs("อัปโหลดคลิปด้านข้างตั้งแต่ง้างจนตีเสร็จ แล้วกด “สแกนทั้งคลิป” ดูหัวข้อ “หยุดทีละส่วนก่อนกระทบ”")});
 
 /* tabs */
-const TABS=["video","smash","wrist"];
+/* tabs; "history" stays hidden until js/cloud.js reveals it for a signed-in user */
+const TABS=["history","video","smash","wrist"];
 function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="video"&&lastKP) requestAnimationFrame(()=>drawPose(lastKP))}
-TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
-showTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):"video");
+TABS.forEach(t=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();const vis=TABS.filter(x=>!$("tab-btn-"+x).hidden),i=vis.indexOf(t);showTab(vis[(i+(e.key==="ArrowRight"?1:vis.length-1))%vis.length],true)}})});
+showTab(TABS.includes(location.hash.slice(1))&&location.hash!=="#history"?location.hash.slice(1):"video");
+window.SmashLab.showTab=showTab;
 
 paintInputs(); analyse(); model();
 })();

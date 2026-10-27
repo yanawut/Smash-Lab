@@ -30,7 +30,7 @@
       <div id="acc-out" hidden>
         <img id="acc-photo" class="acc-photo" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden>
         <span id="acc-name" class="acc-name"></span>
-        <button id="btn-history" class="ghost" type="button" aria-haspopup="dialog">ประวัติการวิเคราะห์</button>
+        <button id="btn-history" class="ghost" type="button" aria-controls="tab-history">ประวัติการวิเคราะห์</button>
         <button id="btn-signout" class="ghost" type="button">ออกจากระบบ</button>
       </div>
       <span id="acc-err" class="note" role="status"></span>
@@ -38,10 +38,19 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
+    <button type="button" role="tab" id="tab-btn-history" aria-controls="tab-history" aria-selected="false" tabindex="-1" hidden>ประวัติการวิเคราะห์</button>
     <button type="button" role="tab" id="tab-btn-video" aria-controls="tab-video" aria-selected="true">วิเคราะห์จากวิดีโอหรือภาพ</button>
     <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="false" tabindex="-1">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
     <button type="button" role="tab" id="tab-btn-wrist" aria-controls="tab-wrist" aria-selected="false" tabindex="-1">ลูกตบ: แกนข้อมือ <span class="tab-src">UNITON</span></button>
   </nav>
+
+  <div class="tabpanel" id="tab-history" role="tabpanel" aria-labelledby="tab-btn-history" hidden>
+    <section class="panel">
+      <div class="panel-head"><h2>ประวัติการวิเคราะห์</h2><span class="note">เรียงจากล่าสุด · เฉพาะบัญชีของคุณ · เก็บตัวเลขผล ไม่เก็บวิดีโอ</span></div>
+      <p id="hist-msg" class="note" role="status" hidden></p>
+      <ul id="hist-list" class="hist-list"></ul>
+    </section>
+  </div>
 
   <div class="tabpanel" id="tab-video" role="tabpanel" aria-labelledby="tab-btn-video">
   <section class="panel" id="video-lab">
@@ -325,14 +334,6 @@
 
 <script src="vendor/tf.min.js"></script>
 <script src="js/app.js"></script>
-<dialog id="history" class="hist-dialog" aria-labelledby="hist-title">
-  <div class="hist-head">
-    <div><h2 id="hist-title">ประวัติการวิเคราะห์</h2><span class="note">เรียงจากล่าสุด · เฉพาะบัญชีของคุณ · เก็บตัวเลขผล ไม่เก็บวิดีโอ</span></div>
-    <button id="hist-close" class="ghost" type="button">ปิด</button>
-  </div>
-  <p id="hist-msg" class="note" role="status" hidden></p>
-  <ul id="hist-list" class="hist-list"></ul>
-</dialog>
 <script type="module" src="js/cloud.js"></script>
 </body>
 </html>
