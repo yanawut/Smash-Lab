@@ -136,7 +136,14 @@ const nar=new Audio();
 function narBtn(){const b=$("btn-narrate");b.setAttribute("aria-pressed",narOn);b.classList.toggle("on",narOn);b.lastChild.textContent=narOn?" หยุดฟัง":" ฟังสรุปผล"}
 function narStop(){narOn=false;narQ=[];nar.pause();narBtn()}
 function narNext(){if(!narOn) return;const k=narQ.shift();if(!k){narStop();return}nar.src=`audio/n-${k}.mp3`;nar.play().catch(narStop)}
-function narShow(){narStop();$("btn-narrate").hidden=!vScores;$("btn-share").hidden=!lastM;$("share-box").hidden=true}
+function narShow(){narStop();$("btn-narrate").hidden=!vScores;$("btn-share").hidden=!lastM;$("share-box").hidden=true;emitResult()}
+/* hand the current result to js/cloud.js (saved history) without coupling the two scripts */
+function emitResult(){document.dispatchEvent(new CustomEvent("smashlab:result",{detail:{has:!!lastM}}))}
+window.SmashLab={result(){
+  if(!lastM) return null;
+  const rows=[...document.querySelectorAll("#metrics .metric")].slice(0,20).map(m=>{const p=m.querySelector(".pill");return {n:m.querySelector(".mn").textContent.slice(0,60),v:m.querySelector(".mv").textContent.slice(0,40),s:p?(["g","m","b"].find(c=>p.classList.contains(c))||"n"):"n"}});
+  return {view:lastM.view==="rear"?"rear":"side",src:lastM.src,hand:$("hand-l").checked?"L":"R",contactT:frames&&cIdx!=null?+frames[cIdx].t.toFixed(2):null,rows,scores:vScores||{}};
+}};
 nar.addEventListener("ended",narNext);nar.addEventListener("error",narStop);
 $("btn-narrate").addEventListener("click",()=>{
   if(narOn){narStop();return}
@@ -322,6 +329,7 @@ function showStatic(kp,suffix){
 let thumbTok=0;
 function thumbIndex(name){
   const a=arm(),c=cIdx,tc=frames[c].t,near=t=>nearest(t),inW=(lo,hi)=>frames.map((f,i)=>i).filter(i=>frames[i].t>=tc+lo&&frames[i].t<=tc+hi);
+  if(/หยุดทีละส่วน/.test(name)&&lastM&&lastM.wpT!=null) return near(lastM.wpT);
   if(/ลำดับการส่งแรง/.test(name)) return near(tc-0.15);
   if(/หมุนลำตัว|ท่าเตรียม/.test(name)){let bi=near(tc-0.4),bw=1e9;inW(-0.9,-0.12).forEach(i=>{const k=frames[i].kp;if(okp(k[5])&&okp(k[6])){const w=Math.abs(k[5].x-k[6].x);if(w<bw){bw=w;bi=i}}});return bi}
   if(/ศีรษะ/.test(name)){const kc=frames[c].kp;if(!okp(kc[0])||!okp(kc[5])||!okp(kc[6])) return near(tc-0.2);const rel=k=>({x:k[0].x-(k[5].x+k[6].x)/2,y:k[0].y-(k[5].y+k[6].y)/2}),r0=rel(kc);let bi=c,bd=-1;inW(-0.4,0).forEach(i=>{const k=frames[i].kp;if(okp(k[0])&&okp(k[5])&&okp(k[6])){const d=dist(rel(k),r0);if(d>bd){bd=d;bi=i}}});return bi}
@@ -386,6 +394,13 @@ function scanAnalyse(){
     let good=0;for(let i=0;i<3;i++) if(pk[i].t<=pk[i+1].t+0.001) good++;const s=[1,2,3,5][good];sc.seq=s;M.good=good;M.pk=pk;M.lagMs=Math.round((pk[3].t-pk[2].t)*1000);
     out.push(row("ลำดับการส่งแรง",`${good}/3 คู่ถูกลำดับ`,s,pk.map(p=>`${p.l} ${p.t>=0?"+":""}${Math.round(p.t*1000)} ms`).join(" → ")+" (ค่าลบ = ก่อนจังหวะกระทบ) · ลำดับที่ดีคือ สะโพก → ไหล่ → ศอก → ข้อมือ"))}
   else out.push(row("ลำดับการส่งแรง","–",null,"คลิปมีเฟรมก่อนจังหวะกระทบไม่พอ"));
+  /* UNITON "The Wrist Trick": hip and shoulder should brake by the time the wrist is fastest, handing their speed on */
+  if(win.length>=4){let iw=win[0];win.forEach(i=>{if(SP.wr[i]>SP.wr[iw]) iw=i});const pre=win.filter(i=>i<=iw);
+    const rt=k=>{const pk=Math.max(...pre.map(i=>SP[k][i]));return pk>0?SP[k][iw]/pk:null},rh=rt("hip"),rs=rt("sh");
+    if(pre.length>=3&&rh!=null&&rs!=null){const b=(rh+rs)/2,s=b<=0.45?5:b<=0.6?4:b<=0.75?3:2;M.brk=b;M.brks=s;M.wpT=frames[iw].t;
+      out.push(row("หยุดทีละส่วนก่อนกระทบ",`สะโพก ${Math.round(rh*100)}% · ไหล่ ${Math.round(rs*100)}%`,s,"ความเร็วของสะโพกและไหล่ตอนข้อมือเร็วที่สุด เทียบกับความเร็วสูงสุดของตัวเองก่อนหน้านั้น · ส่วนต้นควรชะลอหรือหยุด เพื่อส่งแรงต่อไปที่ข้อมือและหัวไม้ ยิ่งน้อยยิ่งดี (UNITON)"))}
+    else out.push(row("หยุดทีละส่วนก่อนกระทบ","–",null,"ข้อมือเร่งเร็วที่สุดตั้งแต่ต้นคลิป หรือมองไม่เห็นสะโพกและไหล่"))}
+  else out.push(row("หยุดทีละส่วนก่อนกระทบ","–",null,"คลิปมีเฟรมก่อนจังหวะกระทบไม่พอ"));
   const wid=i=>{const k=frames[i].kp;return okp(k[5])&&okp(k[6])?Math.abs(k[5].x-k[6].x)/T:null};
   const prep=inW(-0.9,-0.12).map(wid).filter(x=>x!=null),atC=inW(-0.05,0.1).map(wid).filter(x=>x!=null);
   if(prep.length&&atC.length){const wp=Math.min(...prep),wc=Math.max(...atC),dl=wc-wp;const s=wp>0.5?2:dl>0.25?5:dl>0.15?4:dl>0.08?3:2;sc.torso=s;M.wp=wp;M.wc=wc;M.dl=dl;
@@ -454,7 +469,7 @@ function drawSpeed(SP,tc){
   g+=`<line x1="${X(tc).toFixed(1)}" y1="6" x2="${X(tc).toFixed(1)}" y2="108" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${Math.min(300,X(tc)+4).toFixed(1)}" y="16" font-size="10" fill="var(--ink)">กระทบ</text>`;
   $("speed").innerHTML=g;$("speed-wrap").hidden=false;
 }
-function resetVL(){narStop();$("btn-narrate").hidden=true;$("btn-share").hidden=true;$("share-box").hidden=true;lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
+function resetVL(){narStop();$("btn-narrate").hidden=true;$("btn-share").hidden=true;$("share-box").hidden=true;queueMicrotask(emitResult);lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
 function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b;$("btn-clear").disabled=b}
 $("media-file").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f) return;
@@ -776,11 +791,86 @@ requestAnimationFrame(animTick);
 function fillFocus(){$("focus").innerHTML='<option value="">วิเคราะห์ทุกหัวข้อ</option>'+F.map(f=>`<option value="${f.id}">${f.n}</option>`).join("")}
 fillFocus();
 
+/* wrist-axis tab (UNITON "The Wrist Trick"): rotate the racket around a still wrist, and stop each segment to hand power on */
+const WVID="https://www.youtube.com/watch?v=gazmXgv0PcU&t=";
+const WCH=[
+ {t:43, ts:"00:43",h:"ตีสุดแรงแต่ลูกเบา",d:"ออกแรงเต็มที่แต่เสียงตบเบา สุดท้ายเจ็บไหล่และศอก โค้ชบอกให้ผ่อนแรงแต่ไม่รู้ว่าทำอย่างไร"},
+ {t:127,ts:"02:07",h:"จะตีแรง ต้องผ่อนแรงเป็น",d:"กุญแจของแรงกระแทกโดยกล้ามเนื้อไม่เกร็งคือการหมุน"},
+ {t:166,ts:"02:46",h:"แกนหมุนและรัศมี",d:"หัวไม้หมุนรอบแกน ระยะจากแกนถึงหัวไม้คือรัศมีหมุน รัศมีสั้นหมุนได้เร็วกว่า เหมือนเหวี่ยงไม้เบสบอลสั้นกับยาว"},
+ {t:216,ts:"03:36",h:"แกนข้อมือ กับ แกนไหล่",d:"หมุนรอบข้อมือ รัศมีสั้นกว่าหมุนรอบไหล่ จึงเร่งหัวไม้ได้เร็วกว่า"},
+ {t:277,ts:"04:37",h:"วงสวิงมือใหม่หมุนจากไหล่",d:"รัศมียาว หมุนช้า ลูกไม่ไกล เลยต้องเกร็งไหล่และลำตัวออกแรงเพิ่ม"},
+ {t:336,ts:"05:36",h:"ความเร็วเชิงมุม",d:"มุมที่หมุนเท่ากัน ปลายที่ไกลแกนเคลื่อนเร็วกว่า หมุนด้ามเร็ว หัวไม้ก็เร็วเอง ไม่ต้องเกร็งตัว"},
+ {t:468,ts:"07:48",h:"แกนข้อมือต้องนิ่ง",d:"ถ้าข้อมือเลื่อนตามหัวไม้ การหมุนจะย้ายไปที่ไหล่ รัศมียาวขึ้น หัวไม้ช้าลง ต้องออกแรงมากขึ้นจนผ่อนแรงไม่ได้"},
+ {t:530,ts:"08:50",h:"ฝึกนับ 1–2–3",d:"ล็อกข้อมือไว้เป็นแกน ส่วนอื่นนิ่ง ให้ไม้หมุนรอบข้อมือ"},
+ {t:630,ts:"10:30",h:"ข้อมือคือแกนสุดท้าย",d:"ก่อนถึงข้อมือ แรงหมุนเริ่มจากขา สะโพก ลำตัว แล้วส่งต่อไปทีละท่อนของแขน"},
+ {t:678,ts:"11:18",h:"หมุนรวดเดียวทำให้แรงหาย",d:"ถ้าหมุนต่อเนื่องไม่มีจุดหยุด แรงจะอ่อนลง ต้องหยุดทีละส่วนเพื่อส่งแรงที่มากขึ้นให้ส่วนถัดไป"},
+ {t:741,ts:"12:21",h:"สะโพก → แขน → ข้อมือ → หัวไม้",d:"สะโพกหมุนแล้วหยุด แขนออกแล้วหยุด ข้อมือออกแล้วหยุด แล้วหัวไม้จึงพุ่งออก แรงไปรวมที่จังหวะกระทบ"}
+];
+$("wr-chapters").innerHTML=WCH.map(c=>`<li><a href="${WVID}${c.t}s" target="_blank" rel="noopener">${c.ts}</a><div><b>${c.h}</b><span>${c.d}</span></div></li>`).join("");
+const WCK={"wr-ck1":["ศอกและไหล่นิ่ง มีแต่ไม้ที่หมุนรอบข้อมือ","ได้ยินเสียงวืด โดยไหล่และปลายแขนไม่เกร็ง","ข้อมือไม่เลื่อนตามหัวไม้"],"wr-ck2":["สะโพกหยุดก่อนแขนออก","แขนหยุดก่อนข้อมือสะบัด","หัวไม้เร็วที่สุดตรงจุดกระทบ ไม่ใช่ตอนเริ่มเหวี่ยง"]};
+Object.keys(WCK).forEach(id=>{$(id).innerHTML=WCK[id].map((t,i)=>`<label for="${id}-${i}"><input type="checkbox" id="${id}-${i}"><span>${t}</span></label>`).join("")});
+/* axis model: same effort for both, so sweep time grows with the radius (constant torque, inertia ~ r²) */
+const AX={S:[170,180],LA:80,LR:75,wr:{from:-160,to:110,dur:600},sh:{from:-150,to:100}};
+AX.sh.dur=Math.round(AX.wr.dur*(AX.LA+AX.LR)/AX.LR*Math.sqrt((AX.sh.to-AX.sh.from)/(AX.wr.to-AX.wr.from)));
+const AXS={playing:!reduceMo,slow:false,clock:reduceMo?AX.wr.dur:0,last:null};
+const dirv=(a,l)=>[l*Math.sin(a*Math.PI/180),-l*Math.cos(a*Math.PI/180)];
+const addv=(p,q)=>[p[0]+q[0],p[1]+q[1]];
+function axisPose(mode,ang){
+  const S=AX.S;if(mode==="wr"){const E=addv(S,dirv(12,42)),W=addv(E,dirv(32,40));return {S,E,W,R:addv(W,dirv(ang,AX.LR)),O:W,r:AX.LR}}
+  const E=addv(S,dirv(ang,42)),W=addv(S,dirv(ang,AX.LA));return {S,E,W,R:addv(S,dirv(ang,AX.LA+AX.LR)),O:S,r:AX.LA+AX.LR};
+}
+function axisDraw(tc){
+  const mode=$("axis-wr").checked?"wr":"sh",cfg=AX[mode],hold=700,cyc=cfg.dur+hold,t=Math.min(cfg.dur,tc%cyc),k=(t/cfg.dur)**2;
+  const ang=cfg.from+(cfg.to-cfg.from)*k,P=axisPose(mode,ang),good=mode==="wr",c=good?"var(--court)":"var(--warn)",f=n=>n.toFixed(1);
+  const L=(a,b,col,w,ex)=>`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${ex||""}/>`;
+  let g=`<line x1="60" y1="290" x2="500" y2="290" stroke="var(--line)" stroke-width="2"/><line x1="470" y1="290" x2="470" y2="216" stroke="var(--muted)" stroke-width="2"/><text x="470" y="284" dx="-34" font-size="12" fill="var(--muted)">เน็ต</text>`;
+  g+=`<circle cx="${f(P.O[0])}" cy="${f(P.O[1])}" r="${P.r}" fill="none" stroke="${c}" stroke-opacity=".3" stroke-dasharray="4 5"/>`;
+  const tr=[];for(let i=0;i<=40;i++){const a=cfg.from+(ang-cfg.from)*i/40;tr.push(axisPose(mode,a).R)}
+  g+=`<polyline points="${tr.map(p=>f(p[0])+","+f(p[1])).join(" ")}" fill="none" stroke="${c}" stroke-width="4" stroke-opacity=".35" stroke-linecap="round"/>`;
+  g+=`<g fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="156" cy="152" r="13"/><line x1="166" y1="178" x2="162" y2="235"/><polyline points="132,290 162,235 196,290"/><polyline points="166,190 140,196 128,176"/></g>`;
+  g+=L(P.S,P.E,"var(--cork)",3.5)+L(P.E,P.W,"var(--cork)",3.5)+L(P.W,P.R,"var(--cork)",2.5);
+  const an=Math.atan2(P.R[0]-P.W[0],-(P.R[1]-P.W[1]))*180/Math.PI;
+  g+=`<ellipse cx="${f(P.R[0])}" cy="${f(P.R[1])}" rx="7" ry="12" transform="rotate(${f(an)} ${f(P.R[0])} ${f(P.R[1])})" fill="var(--surface)" stroke="var(--cork)" stroke-width="2.5"/>`;
+  g+=L(P.O,P.R,c,1.5,` stroke-dasharray="3 3"`);
+  g+=`<circle cx="${f(P.O[0])}" cy="${f(P.O[1])}" r="7" fill="var(--surface)" stroke="${c}" stroke-width="3"/><text x="${f(P.O[0]+12)}" y="${f(P.O[1]+(good?18:32))}" font-size="13" fill="${c}">แกน${good?"ข้อมือ":"ไหล่"}</text>`;
+  if(!good) g+=`<circle cx="${f(P.W[0])}" cy="${f(P.W[1])}" r="5" fill="var(--warn)"/><text x="${f(P.W[0]+10)}" y="${f(P.W[1]-8)}" font-size="12" fill="var(--warn)">ข้อมือเลื่อน</text>`;
+  g+=`<text x="300" y="28" font-size="14" fill="${c}">${good?"✓ หมุนรอบข้อมือ รัศมีสั้น":"✗ หมุนรอบไหล่ รัศมียาว"}</text><text x="300" y="48" font-size="12" fill="var(--muted)">แรงเท่ากัน · ใช้เวลาหมุน ${good?"1×":(cfg.dur/AX.wr.dur).toFixed(1)+"×"}${AXS.slow?" · ช้า ×3":""}</text>`;
+  $("axis-svg").querySelectorAll(":scope > :not(title):not(desc)").forEach(n=>n.remove());
+  $("axis-svg").insertAdjacentHTML("beforeend",g);
+}
+function axisRead(){const w=$("axis-wr").checked;$("ax-r").textContent=w?"≈ 0.7 m":"≈ 1.3 m";$("ax-i").textContent=w?"1×":"≈ 3.6×";const b=$("ax-b");b.textContent=w?"ผ่อนคลาย":"ต้องเกร็ง";b.style.color=w?"var(--good)":"var(--warn)"}
+function axisTick(ts){
+  if(AXS.last==null) AXS.last=ts;const dt=Math.min(64,ts-AXS.last);AXS.last=ts;
+  if(!$("tab-wrist").hidden){if(AXS.playing) AXS.clock+=dt/(AXS.slow?3:1);axisDraw(AXS.clock)}
+  requestAnimationFrame(axisTick);
+}
+["axis-wr","axis-sh"].forEach(id=>$(id).addEventListener("change",()=>{AXS.clock=AXS.playing?0:AX[$("axis-wr").checked?"wr":"sh"].dur;axisRead()}));
+function axisBtns(){$("axis-play").textContent=AXS.playing?"หยุด":"เล่น";$("axis-play").setAttribute("aria-pressed",!AXS.playing);$("axis-slow").setAttribute("aria-pressed",AXS.slow)}
+$("axis-play").addEventListener("click",()=>{AXS.playing=!AXS.playing;axisBtns()});
+$("axis-slow").addEventListener("click",()=>{AXS.slow=!AXS.slow;axisBtns()});
+axisBtns();axisRead();requestAnimationFrame(axisTick);
+/* chain chart: each segment speeds up then brakes (stop) vs everything turning together */
+function chainDraw(){
+  const stop=$("chain-stop").checked,X=t=>10+t*300,Y=v=>130-v*112,f=n=>n.toFixed(1);
+  const C=stop?[[0.22,0.07,0.35],[0.38,0.07,0.5],[0.53,0.065,0.7],[0.68,0.055,1]]:[[0.4,0.2,0.42],[0.45,0.2,0.46],[0.5,0.2,0.5],[0.55,0.2,0.56]];
+  const col=["var(--muted)","var(--court)","var(--mid)","var(--cork)"];
+  let g=`<line x1="10" y1="130" x2="310" y2="130" stroke="var(--line)"/>`;
+  C.forEach(([m,w,h],i)=>{const pts=[];for(let j=0;j<=100;j++){const t=j/100;pts.push(f(X(t))+","+f(Y(h*Math.exp(-(((t-m)/w)**2)/2))))}
+    g+=`<polyline fill="none" stroke="${col[i]}" stroke-width="${i===3?2.4:1.8}" points="${pts.join(" ")}"/>`;
+    if(stop&&i<3) g+=`<text x="${f(X(m+w*1.9))}" y="${f(Y(h*0.2)-4)}" font-size="9.5" fill="${col[i]}">หยุด</text>`});
+  const tc=C[3][0];g+=`<line x1="${f(X(tc))}" y1="8" x2="${f(X(tc))}" y2="130" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${f(X(tc)+4)}" y="18" font-size="10" fill="var(--ink)">กระทบ</text><text x="10" y="146" font-size="10" fill="var(--muted)">เวลา →</text>`;
+  $("chain-svg").querySelectorAll(":scope > :not(title)").forEach(n=>n.remove());$("chain-svg").insertAdjacentHTML("beforeend",g);
+  $("chain-msg").textContent=stop?"แต่ละส่วนเร่งแล้วหยุด ส่งความเร็วต่อให้ส่วนถัดไป ความเร็วไปสูงสุดที่ข้อมือและหัวไม้ตรงจังหวะกระทบ":"ทุกส่วนหมุนไปพร้อมกันและไม่หยุด แรงไม่ถูกส่งต่อ หัวไม้ช้ากว่าแม้จะออกแรงมากกว่า";
+}
+["chain-stop","chain-flow"].forEach(id=>$(id).addEventListener("change",chainDraw));
+chainDraw();
+$("wr-goto").addEventListener("click",()=>{showTab("video");$("view-side").checked=true;$("view-side").dispatchEvent(new Event("change"));const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;$("video-lab").scrollIntoView({behavior:rm?"auto":"smooth",block:"start"});vs("อัปโหลดคลิปด้านข้างตั้งแต่ง้างจนตีเสร็จ แล้วกด “สแกนทั้งคลิป” ดูหัวข้อ “หยุดทีละส่วนก่อนกระทบ”")});
+
 /* tabs */
-const TABS=["video","smash"];
+const TABS=["video","smash","wrist"];
 function showTab(t,focus){TABS.forEach(x=>{const on=x===t;$("tab-"+x).hidden=!on;const b=$("tab-btn-"+x);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;if(on&&focus) b.focus()});if(t==="video"&&lastKP) requestAnimationFrame(()=>drawPose(lastKP))}
 TABS.forEach((t,i)=>{const b=$("tab-btn-"+t);b.addEventListener("click",()=>showTab(t));b.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();showTab(TABS[(i+(e.key==="ArrowRight"?1:TABS.length-1))%TABS.length],true)}})});
-showTab(location.hash==="#smash"?"smash":"video");
+showTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):"video");
 
 paintInputs(); analyse(); model();
 })();

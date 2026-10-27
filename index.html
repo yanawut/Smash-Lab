@@ -22,11 +22,24 @@
     <svg class="hero-shuttle" viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><path d="M20 8 L32 40 L44 8 Z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 8 L32 40 M38 8 L32 40 M20 20 H44" stroke="var(--ink)" stroke-width="1.6" fill="none"/><ellipse cx="32" cy="46" rx="9" ry="8" fill="var(--cork)"/></svg>
     <h1>Smash <span class="accent">Lab</span></h1>
     <p class="lede">วิเคราะห์ท่าตบแบดมินตันจากวิดีโอหรือภาพในเครื่องของคุณ พร้อมโมเดลจุดกระทบ แบบประเมินตัวเอง และแบบฝึก แรงตบมาจากการหมุนลำตัวและส่งไม้ไปข้างหน้าเหมือนขว้างของ ไม่ได้มาจากแรงแขน</p>
+    <div class="account" id="account" hidden>
+      <div id="acc-in">
+        <button id="btn-signin" class="gbtn" type="button"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> เข้าสู่ระบบด้วย Google</button>
+        <span class="note">เพื่อบันทึกประวัติผลวิเคราะห์ (เก็บเฉพาะตัวเลขผล ไม่เก็บวิดีโอ)</span>
+      </div>
+      <div id="acc-out" hidden>
+        <img id="acc-photo" class="acc-photo" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden>
+        <span id="acc-name" class="acc-name"></span>
+        <button id="btn-signout" class="ghost" type="button">ออกจากระบบ</button>
+      </div>
+      <span id="acc-err" class="note" role="status"></span>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="หัวข้อวิเคราะห์">
     <button type="button" role="tab" id="tab-btn-video" aria-controls="tab-video" aria-selected="true">วิเคราะห์จากวิดีโอหรือภาพ</button>
     <button type="button" role="tab" id="tab-btn-smash" aria-controls="tab-smash" aria-selected="false" tabindex="-1">ลูกตบ: จุดกระทบ <span class="tab-src">full-swing</span></button>
+    <button type="button" role="tab" id="tab-btn-wrist" aria-controls="tab-wrist" aria-selected="false" tabindex="-1">ลูกตบ: แกนข้อมือ <span class="tab-src">UNITON</span></button>
   </nav>
 
   <div class="tabpanel" id="tab-video" role="tabpanel" aria-labelledby="tab-btn-video">
@@ -64,6 +77,7 @@
       </div>
     </div>
     <p class="note rear-note" id="rear-note" hidden>มุมด้านหลังวัด 5 เรื่องตามที่ <a href="https://www.youtube.com/watch?v=zLu8WNV8nXU&amp;t=120s" target="_blank" rel="noopener">ครีม บุศนันทน์ สอนตบ (Jongnow TH) ↗</a> แนะนำ: แขนเหยียดสุดตอนกระทบ ตีเหนือศีรษะ ลูกอยู่เหนือไหล่ข้างที่ตี ยกศอกตอนตั้งท่า และก้าวตามลูกไปข้างหน้าหลังตบ</p>
+    <p class="note" id="brk-note">หัวข้อ “หยุดทีละส่วนก่อนกระทบ” อิงคลิป <a href="https://www.youtube.com/watch?v=gazmXgv0PcU&amp;t=678s" target="_blank" rel="noopener">UNITON: The Wrist Trick ↗</a> · สะโพกและไหล่ควรชะลอลงตอนข้อมือเร็วที่สุด เพื่อส่งแรงต่อไปที่ข้อมือและหัวไม้ (ต้องใช้คลิปมุมด้านข้าง)</p>
     <p class="note" id="arm-note">หัวข้อการหมุนแขนอิงคลิป <a href="https://www.youtube.com/watch?v=x79p8DMaZNk" target="_blank" rel="noopener">full-swing: Stop Twisting Your Wrist ↗</a> · ปลดศอกส่งแขนไปข้างหน้า ไม่ดึงศอกหรือไหล่ลง หน้าไม้หมุนเองหลังกระทบ ไม่ใช่บิดข้อมือ (ต้องใช้คลิป โมเดลมองไม่เห็นไม้และนิ้ว จึงวัดจากข้อต่อแขนแทน)</p>
     <div class="vl-body">
       <div class="vl-main">
@@ -93,6 +107,7 @@
         <div class="vl-under">
           <div class="actions">
             <button id="btn-share" class="ghost narrate" type="button" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="18" cy="5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="19" r="2.6" fill="currentColor"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3" stroke="currentColor" stroke-width="2" fill="none"/></svg> แชร์ผล</button>
+            <button id="btn-cloud-save" class="ghost narrate" type="button" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 3h11l3 3v15H5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 3v6h8V3M8 21v-7h8v7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg> บันทึกผล</button>
             <button id="btn-narrate" class="ghost narrate" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> ฟังสรุปผล</button>
           </div>
           <div id="share-box" class="share-box" hidden>
@@ -125,6 +140,12 @@
       </div>
     </div>
     <p class="note">ใช้โมเดลจับท่าทาง MoveNet ที่ทำงานในเครื่อง ไฟล์ถูกเปิดในหน้านี้เท่านั้น ไม่ถูกส่งออกไปที่ใดและไม่ถูกบันทึก ปิดหน้าแล้วหายไป ข้อจำกัด: ภาพ 2 มิติจากมุมเดียว และโมเดลมองไม่เห็นไม้ จึงวัดได้ 5 จาก 8 หัวข้อ (ผ่อนแรง ใช้แรงน้อย และทิ้งไม้ ยังต้องประเมินเอง) ตัวเลขทั้งหมดเป็นค่าประมาณ</p>
+  </section>
+
+  <section class="panel" id="history" hidden>
+    <div class="panel-head"><h2>ประวัติผลวิเคราะห์</h2><span class="note">เฉพาะบัญชีของคุณ · เก็บตัวเลขผล ไม่เก็บวิดีโอ</span></div>
+    <p id="hist-msg" class="note" role="status" hidden></p>
+    <ul id="hist-list" class="hist-list"></ul>
   </section>
 
   <div class="stack" id="assess" hidden>
@@ -222,9 +243,92 @@
 
   <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=txiWb2C6DLw" target="_blank" rel="noopener">Smash Contact Point: Lower Than "Hit at the Peak" — full-swing</a>. น้ำหนักคะแนนและแบบจำลองมุมลูกเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
   </div>
+
+  <div class="tabpanel" id="tab-wrist" role="tabpanel" aria-labelledby="tab-btn-wrist" hidden>
+    <div class="thesis">
+      <span class="chip bad">หมุนจากแกนไหล่ แล้วเกร็งออกแรง</span>
+      <span aria-hidden="true">→</span>
+      <span class="chip ok">ข้อมือเป็นแกนนิ่ง และหยุดทีละส่วนเพื่อส่งแรง</span>
+    </div>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>โมเดลแกนหมุน</h2>
+          <span class="note">มุมมองด้านข้าง · ภาพจำลองอย่างง่าย</span>
+        </div>
+        <div class="seg small" role="radiogroup" aria-label="แกนที่ใช้หมุนไม้">
+          <input type="radio" name="axis" id="axis-wr" checked><label for="axis-wr">แกนข้อมือนิ่ง</label>
+          <input type="radio" name="axis" id="axis-sh"><label for="axis-sh">ข้อมือเลื่อนตามไม้</label>
+        </div>
+        <div style="overflow-x:auto">
+          <svg id="axis-svg" viewBox="60 0 440 300" width="100%" role="img" aria-labelledby="axis-t axis-d" style="min-width:340px">
+            <title id="axis-t">หมุนไม้จากแกนข้อมือเทียบกับแกนไหล่</title>
+            <desc id="axis-d">เมื่อข้อมือนิ่งเป็นแกน รัศมีหมุนสั้นและหมุนได้เร็วโดยไม่ต้องเกร็ง ถ้าข้อมือเลื่อนตามไม้ การหมุนจะย้ายไปที่ไหล่ รัศมียาวขึ้นและหมุนช้าลง</desc>
+          </svg>
+        </div>
+        <div class="actions">
+          <button id="axis-play" class="ghost" type="button" aria-pressed="false">หยุด</button>
+          <button id="axis-slow" class="ghost" type="button" aria-pressed="false">ช้า ×3</button>
+        </div>
+        <div class="readout">
+          <div><div class="k">รัศมีหมุน</div><div class="v" id="ax-r">–</div></div>
+          <div><div class="k">ความต้านการหมุน</div><div class="v" id="ax-i">–</div></div>
+          <div><div class="k">ร่างกาย</div><div class="v" id="ax-b">–</div></div>
+        </div>
+        <p class="note">รัศมีหมุนคือระยะจากแกนถึงหัวไม้ ความต้านการหมุนเพิ่มตามรัศมียกกำลังสอง ภาพเคลื่อนไหวใช้แรงเท่ากันทั้งสองแบบ แกนข้อมือจึงหมุนครบรอบได้เร็วกว่าโดยไม่ต้องเกร็ง ตัวเลขเป็นแบบจำลองตามคำอธิบายในคลิป ไม่ใช่การวัดจริง</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>สรุปคลิป</h2>
+          <a class="note" href="https://www.youtube.com/watch?v=gazmXgv0PcU&amp;t=468s" target="_blank" rel="noopener" style="color:var(--court)">เปิดคลิป ↗</a>
+        </div>
+        <p class="note"><a class="clip-link" href="https://www.youtube.com/watch?v=gazmXgv0PcU&amp;t=468s" target="_blank" rel="noopener">youtube.com/watch?v=gazmXgv0PcU ↗</a></p>
+        <ol class="chapters" id="wr-chapters"></ol>
+        <p class="note">สรุปจากคำบรรยายภาษาอังกฤษของคลิป (โค้ชพูดภาษาเกาหลี) เวลาแต่ละช่วงเป็นค่าประมาณ</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>หยุดทีละส่วน</h2>
+          <span class="note">ความเร็วของแต่ละส่วนตามเวลา · ภาพจำลอง</span>
+        </div>
+        <div class="seg small" role="radiogroup" aria-label="รูปแบบการส่งแรง">
+          <input type="radio" name="chain" id="chain-stop" checked><label for="chain-stop">หยุดแล้วส่งต่อ</label>
+          <input type="radio" name="chain" id="chain-flow"><label for="chain-flow">หมุนรวดเดียว</label>
+        </div>
+        <svg id="chain-svg" viewBox="0 0 320 150" width="100%" role="img" aria-labelledby="chain-t">
+          <title id="chain-t">กราฟความเร็วของสะโพก ลำตัว แขน และข้อมือ</title>
+        </svg>
+        <div class="legend"><span><i style="background:var(--muted)"></i>สะโพก</span><span><i style="background:var(--court)"></i>ลำตัว/ไหล่</span><span><i style="background:var(--mid)"></i>แขน</span><span><i style="background:var(--cork)"></i>ข้อมือ → หัวไม้</span></div>
+        <p class="note" id="chain-msg"></p>
+        <div class="actions"><button id="wr-goto" class="ghost" type="button">วัดเรื่องนี้จากคลิปของคุณ</button></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>แบบฝึก</h2><span class="note">ติ๊กข้อที่ทำได้ · ไม่บันทึก</span></div>
+        <div class="wr-drill">
+          <h3>1. ข้อมือเป็นแกน (นับ 1–2–3)</h3>
+          <p class="note">ยกแขนตั้งท่า ล็อกศอกและไหล่ไว้นิ่ง แล้วหมุนเฉพาะไม้รอบข้อมือ นับ 1–2–3 ต่อครั้ง 3×10 ใช้แรงน้อยที่สุดที่ยังได้ยินเสียงวืด</p>
+          <div class="ck" id="wr-ck1"></div>
+        </div>
+        <div class="wr-drill">
+          <h3>2. หยุดแล้วส่งต่อ (shadow)</h3>
+          <p class="note">ทำช้า ๆ ทีละจังหวะ: สะโพกหมุนแล้วหยุด → แขนออกแล้วหยุด → ข้อมือออกแล้วหยุด → หัวไม้พุ่งออก 3×8 แล้วค่อยเร่งให้ต่อกันลื่นขึ้น</p>
+          <div class="ck" id="wr-ck2"></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">อ้างอิง: <a href="https://www.youtube.com/watch?v=gazmXgv0PcU&amp;t=468s" target="_blank" rel="noopener">The Wrist Trick That Lets Weak Players Hit All the Way Back — UNITON</a>. แบบจำลองแกนหมุนและกราฟความเร็วเป็นการตีความเพื่อใช้ฝึก ไม่ใช่ผลวัดชีวกลศาสตร์จริง</p>
+  </div>
 </div>
 
 <script src="vendor/tf.min.js"></script>
 <script src="js/app.js"></script>
+<script type="module" src="js/cloud.js"></script>
 </body>
 </html>

@@ -4,6 +4,8 @@
 .assetsignore
 .nojekyll
 wrangler.jsonc
+firestore.rules
+FIREBASE_SETUP.md
 README.md
 THIRD_PARTY.md
 node_modules

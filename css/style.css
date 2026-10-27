@@ -62,6 +62,22 @@ input[type=range]{flex:1;accent-color:var(--court);min-width:0}
 .chapters li{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
 .chapters .speak{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:999px;border-color:var(--line);color:var(--court)}
 .narrate{display:inline-flex;align-items:center;gap:8px;align-self:flex-start}
+.account{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
+.account #acc-in,.account #acc-out{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}
+.account [hidden]{display:none!important}
+.gbtn{display:inline-flex;align-items:center;gap:10px;background:var(--surface);color:var(--ink);border:1px solid var(--line);text-transform:none;letter-spacing:0;border-radius:999px;padding:8px 18px}
+.acc-photo{width:32px;height:32px;border-radius:50%}
+.acc-name{font-weight:700}
+.hist-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.hist-item details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}
+.hist-item summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;cursor:pointer;list-style-position:inside}
+.hist-when{font-weight:700}
+.hist-meta{color:var(--muted);font-size:14px}
+.hist-count{display:inline-flex;gap:6px;margin-left:auto}
+.hist-rows{list-style:none;margin:10px 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hist-rows li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;font-size:14px;border-top:1px solid var(--line);padding-top:6px}
+.hist-rows .mono{font-family:var(--f-mono)}
+.hist-del{font-size:13px;padding:5px 12px}
 .share-box{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .share-box img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:8px;background:var(--surface)}
 .share-link{display:inline-flex;align-items:center;padding:8px 16px;border-radius:4px;font-size:15px;font-weight:700;text-decoration:none;color:#fff}
@@ -208,3 +224,5 @@ button:focus-visible{outline:2px solid var(--cork);outline-offset:2px}
 .foot{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 .foot a{color:var(--court)}
 @media (prefers-reduced-motion:no-preference){.bar .fill{transition:width .35s ease}#arm,#shuttle-path,#contact{transition:all .15s ease}}
+.wr-drill{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.wr-drill:first-of-type{border-top:0;padding-top:0}

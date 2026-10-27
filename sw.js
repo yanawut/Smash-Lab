@@ -1,11 +1,13 @@
 /* Smash Lab service worker: caches the app shell and pose model for offline use.
    Bump VERSION whenever you change any cached file so users get the update. */
-const VERSION = "smashlab-v22";
+const VERSION = "smashlab-v24";
 const CORE = [
   "./",
   "index.html",
   "css/style.css",
   "js/app.js",
+  "js/cloud.js",
+  "js/firebase-config.js",
   "vendor/tf.min.js",
   "models/movenet-lightning.json",
   "models/movenet-lightning.bin",
