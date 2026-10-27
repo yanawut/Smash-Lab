@@ -165,7 +165,7 @@ function analyse(){
   const overall=Math.round(num/den*100);
   $("overall").textContent=overall;
   const lv=$("level");
-  const [t,bg,fg]=overall>=80?["ท่าดี เหลือแค่เก็บรายละเอียด","var(--court-soft)","var(--court)"]:overall>=60?["พื้นฐานพอใช้ แก้จุดอ่อนได้","var(--cork-soft)","var(--cork)"]:["ยังใช้แรงแขนเป็นหลัก","var(--cork-soft)","var(--warn)"];
+  const [t,bg,fg]=overall>=80?["ท่าดี เหลือแค่เก็บรายละเอียด","var(--court-soft)","var(--court)"]:overall>=60?["พื้นฐานพอใช้ แก้จุดอ่อนได้","var(--mid-soft)","var(--mid)"]:["ยังใช้แรงแขนเป็นหลัก","var(--warn-soft)","var(--warn)"];
   lv.textContent=t; lv.style.background=bg; lv.style.color=fg;
   $("bars").innerHTML=F.map(f=>{const v=st.scores[f.id];return `<div class="bar"><span class="lab" title="${f.n}">${f.n}</span><div class="track"><div class="fill" style="width:${v*20}%;background:${color(v)}"></div></div><span class="num">${v}/5</span></div>`}).join("");
   const pr=F.map(f=>{let p=f.w*(5-st.scores[f.id]);const why=[];
@@ -533,7 +533,7 @@ $("btn-apply").addEventListener("click",()=>{
 
 /* share: one portrait image with the contact frame (pose drawn on it) and the result list, for LINE / Facebook */
 const SITE="https://smash-lab.yanawutchaiyo.workers.dev/";
-const SHARE_C={bg:"#fff8f1",card:"#ffffff",ink:"#1c1846",muted:"#5b5878",line:"#eee2d4",g:["#ebf7ef","#1b7f3b"],m:["#fff0e6","#8f5b00"],b:["#fff0e6","#cf2a35"],n:["#f3efe9","#5b5878"],accent:"#c2410c"};
+const SHARE_C={bg:"#f2f7fa",card:"#ffffff",ink:"#0c1d35",muted:"#4e6077",line:"#d9e4ec",g:["#e0f4f5","#0a7480"],m:["#fff4dc","#8f5b00"],b:["#fdecee","#cf2a35"],n:["#eef3f7","#4e6077"],accent:"#1f5fae"};
 let shareBlob=null,shareUrl=null;
 function wrapText(x,text,maxW){
   const seg=window.Intl&&Intl.Segmenter?[...new Intl.Segmenter("th",{granularity:"word"}).segment(text)].map(s=>s.segment):[...text];
