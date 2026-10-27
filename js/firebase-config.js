@@ -3,7 +3,7 @@
    Fill in from Firebase console → Project settings → Your apps → Web app (see FIREBASE_SETUP.md).
    These values are public identifiers, not secrets; access is enforced by firestore.rules. */
 export const FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY_HERE",
+  apiKey: "AIzaSyCrzy7BoKv6yL2vKRcmYZH8GKphcq64AP0",
   authDomain: "smash-lab-6c0c4.firebaseapp.com",
   projectId: "smash-lab-6c0c4",
   storageBucket: "smash-lab-6c0c4.firebasestorage.app",
