@@ -883,3 +883,13 @@ if("serviceWorker" in navigator){
   // a new version took over this page: reload once so html, css and js all come from the same deploy
   if(navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(done) return;done=true;location.reload()})}
 }
+
+/* version shown next to the title: the cache name in sw.js ("smashlab-v27" → "v27"), read from
+   the active cache so it matches what this page runs, or from sw.js on the first visit */
+(async()=>{
+  const el=document.getElementById("app-ver"),pick=s=>(String(s).match(/smashlab-(v\d+)/)||[])[1];
+  let v;
+  try{v=(await caches.keys()).map(pick).filter(Boolean).sort((a,b)=>b.slice(1)-a.slice(1))[0]}catch(e){}
+  if(!v) try{v=pick(await (await fetch("sw.js",{cache:"no-store"})).text())}catch(e){}
+  if(v){el.textContent=v;el.hidden=false}
+})();
