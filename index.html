@@ -30,6 +30,7 @@
       <div id="acc-out" hidden>
         <img id="acc-photo" class="acc-photo" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden>
         <span id="acc-name" class="acc-name"></span>
+        <button id="btn-history" class="ghost" type="button" aria-haspopup="dialog">ประวัติการวิเคราะห์</button>
         <button id="btn-signout" class="ghost" type="button">ออกจากระบบ</button>
       </div>
       <span id="acc-err" class="note" role="status"></span>
@@ -142,11 +143,6 @@
     <p class="note">ใช้โมเดลจับท่าทาง MoveNet ที่ทำงานในเครื่อง ไฟล์ถูกเปิดในหน้านี้เท่านั้น ไม่ถูกส่งออกไปที่ใดและไม่ถูกบันทึก ปิดหน้าแล้วหายไป ข้อจำกัด: ภาพ 2 มิติจากมุมเดียว และโมเดลมองไม่เห็นไม้ จึงวัดได้ 5 จาก 8 หัวข้อ (ผ่อนแรง ใช้แรงน้อย และทิ้งไม้ ยังต้องประเมินเอง) ตัวเลขทั้งหมดเป็นค่าประมาณ</p>
   </section>
 
-  <section class="panel" id="history" hidden>
-    <div class="panel-head"><h2>ประวัติผลวิเคราะห์</h2><span class="note">เฉพาะบัญชีของคุณ · เก็บตัวเลขผล ไม่เก็บวิดีโอ</span></div>
-    <p id="hist-msg" class="note" role="status" hidden></p>
-    <ul id="hist-list" class="hist-list"></ul>
-  </section>
 
   <div class="stack" id="assess" hidden>
     <section class="grid2">
@@ -329,6 +325,14 @@
 
 <script src="vendor/tf.min.js"></script>
 <script src="js/app.js"></script>
+<dialog id="history" class="hist-dialog" aria-labelledby="hist-title">
+  <div class="hist-head">
+    <div><h2 id="hist-title">ประวัติการวิเคราะห์</h2><span class="note">เรียงจากล่าสุด · เฉพาะบัญชีของคุณ · เก็บตัวเลขผล ไม่เก็บวิดีโอ</span></div>
+    <button id="hist-close" class="ghost" type="button">ปิด</button>
+  </div>
+  <p id="hist-msg" class="note" role="status" hidden></p>
+  <ul id="hist-list" class="hist-list"></ul>
+</dialog>
 <script type="module" src="js/cloud.js"></script>
 </body>
 </html>

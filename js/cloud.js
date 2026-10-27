@@ -26,7 +26,8 @@ async function start() {
   const say = (t) => { msg.textContent = t || ""; msg.hidden = !t; };
 
   function paintAccount() {
-    $("acc-in").hidden = !!user; $("acc-out").hidden = !user; hist.hidden = !user;
+    $("acc-in").hidden = !!user; $("acc-out").hidden = !user;
+    if (!user && hist.open) hist.close();
     if (user) {
       $("acc-name").textContent = user.displayName || user.email || "";
       const img = $("acc-photo"); img.hidden = !user.photoURL; if (user.photoURL) img.src = user.photoURL;
@@ -50,7 +51,12 @@ async function start() {
   $("btn-signout").addEventListener("click", () => A.signOut(auth));
   A.getRedirectResult(auth).catch(() => {});
 
-  A.onAuthStateChanged(auth, (u) => { user = u; $("acc-err").textContent = ""; paintAccount(); if (u) load(); else list.innerHTML = ""; });
+  A.onAuthStateChanged(auth, (u) => { user = u; $("acc-err").textContent = ""; paintAccount(); if (!u) list.innerHTML = ""; });
+
+  // history opens as a full-screen sheet of cards, newest first; reloaded on each open
+  $("btn-history").addEventListener("click", () => { if (!user) return; hist.showModal(); load(); });
+  $("hist-close").addEventListener("click", () => hist.close());
+  hist.addEventListener("click", (e) => { if (e.target === hist) hist.close(); });
 
   document.addEventListener("smashlab:result", (e) => { hasResult = !!(e.detail && e.detail.has); seq++; paintSave(); });
 
@@ -60,7 +66,7 @@ async function start() {
     saveBtn.disabled = true;
     try {
       await F.addDoc(col(), { createdAt: F.serverTimestamp(), view: r.view, src: r.src, hand: r.hand, contactT: r.contactT, rows: r.rows, scores: r.scores });
-      savedFor = seq; paintSave(); say(""); load();
+      savedFor = seq; paintSave(); say("");
     } catch (e) { saveBtn.disabled = false; say("บันทึกไม่สำเร็จ ตรวจการเชื่อมต่อแล้วลองใหม่"); }
   });
 
@@ -76,10 +82,10 @@ async function start() {
     const r = d.data(), when = r.createdAt ? r.createdAt.toDate() : new Date();
     const n = { g: 0, m: 0, b: 0 }; (r.rows || []).forEach((x) => { if (n[x.s] != null) n[x.s]++; });
     const date = when.toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
-    return `<li class="hist-item"><details><summary><span class="hist-when">${esc(date)}</span><span class="hist-meta">${esc(VIEW[r.view] || "")} · ${esc(SRC[r.src] || "")}${r.contactT != null ? ` · กระทบ ${r.contactT} วิ` : ""}</span>`
-      + `<span class="hist-count"><span class="pill g">ดี ${n.g}</span><span class="pill m">พอใช้ ${n.m}</span><span class="pill b">ควรแก้ ${n.b}</span></span></summary>`
+    return `<li class="hist-item"><article class="hist-card"><header><span class="hist-when">${esc(date)}</span><span class="hist-meta">${esc(VIEW[r.view] || "")} · ${esc(SRC[r.src] || "")}${r.contactT != null ? ` · กระทบ ${r.contactT} วิ` : ""}</span></header>`
+      + `<span class="hist-count"><span class="pill g">ดี ${n.g}</span><span class="pill m">พอใช้ ${n.m}</span><span class="pill b">ควรแก้ ${n.b}</span></span>`
       + `<ul class="hist-rows">${(r.rows || []).map((x) => `<li><span>${esc(x.n)}</span><span class="mono">${esc(x.v)}</span><span class="pill ${esc(x.s)}">${VERDICT[x.s] || ""}</span></li>`).join("")}</ul>`
-      + `<button type="button" class="ghost hist-del" data-id="${esc(d.id)}">ลบรายการนี้</button></details></li>`;
+      + `<button type="button" class="ghost hist-del" data-id="${esc(d.id)}">ลบรายการนี้</button></article></li>`;
   }
   list.addEventListener("click", async (e) => {
     const b = e.target.closest(".hist-del"); if (!b || !user) return;
