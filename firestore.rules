@@ -1,0 +1,17 @@
+rules_version = '2';
+// Smash Lab: each signed-in user can only read, add and delete their own saved results.
+// Results are numbers and verdicts only (no video, no images).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/results/{resultId} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['createdAt', 'view', 'src', 'hand', 'contactT', 'rows', 'scores'])
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.view in ['side', 'rear']
+        && request.resource.data.rows is list && request.resource.data.rows.size() <= 20
+        && request.resource.data.scores is map && request.resource.data.scores.size() <= 10;
+      allow update: if false;
+    }
+  }
+}

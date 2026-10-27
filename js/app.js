@@ -136,7 +136,14 @@ const nar=new Audio();
 function narBtn(){const b=$("btn-narrate");b.setAttribute("aria-pressed",narOn);b.classList.toggle("on",narOn);b.lastChild.textContent=narOn?" หยุดฟัง":" ฟังสรุปผล"}
 function narStop(){narOn=false;narQ=[];nar.pause();narBtn()}
 function narNext(){if(!narOn) return;const k=narQ.shift();if(!k){narStop();return}nar.src=`audio/n-${k}.mp3`;nar.play().catch(narStop)}
-function narShow(){narStop();$("btn-narrate").hidden=!vScores;$("btn-share").hidden=!lastM;$("share-box").hidden=true}
+function narShow(){narStop();$("btn-narrate").hidden=!vScores;$("btn-share").hidden=!lastM;$("share-box").hidden=true;emitResult()}
+/* hand the current result to js/cloud.js (saved history) without coupling the two scripts */
+function emitResult(){document.dispatchEvent(new CustomEvent("smashlab:result",{detail:{has:!!lastM}}))}
+window.SmashLab={result(){
+  if(!lastM) return null;
+  const rows=[...document.querySelectorAll("#metrics .metric")].slice(0,20).map(m=>{const p=m.querySelector(".pill");return {n:m.querySelector(".mn").textContent.slice(0,60),v:m.querySelector(".mv").textContent.slice(0,40),s:p?(["g","m","b"].find(c=>p.classList.contains(c))||"n"):"n"}});
+  return {view:lastM.view==="rear"?"rear":"side",src:lastM.src,hand:$("hand-l").checked?"L":"R",contactT:frames&&cIdx!=null?+frames[cIdx].t.toFixed(2):null,rows,scores:vScores||{}};
+}};
 nar.addEventListener("ended",narNext);nar.addEventListener("error",narStop);
 $("btn-narrate").addEventListener("click",()=>{
   if(narOn){narStop();return}
@@ -462,7 +469,7 @@ function drawSpeed(SP,tc){
   g+=`<line x1="${X(tc).toFixed(1)}" y1="6" x2="${X(tc).toFixed(1)}" y2="108" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${Math.min(300,X(tc)+4).toFixed(1)}" y="16" font-size="10" fill="var(--ink)">กระทบ</text>`;
   $("speed").innerHTML=g;$("speed-wrap").hidden=false;
 }
-function resetVL(){narStop();$("btn-narrate").hidden=true;$("btn-share").hidden=true;$("share-box").hidden=true;lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
+function resetVL(){narStop();$("btn-narrate").hidden=true;$("btn-share").hidden=true;$("share-box").hidden=true;queueMicrotask(emitResult);lastM=null;frames=null;cIdx=null;lastKP=null;vScores=null;$("metrics").innerHTML="";$("speed-wrap").hidden=true;$("btn-apply").hidden=true;$("btn-setc").hidden=true;octx.clearRect(0,0,ov.width,ov.height);renderDrill()}
 function setBusy(b){busy=b;$("btn-scan").disabled=b||kind!=="video";$("btn-frame").disabled=b||!kind;$("btn-setc").disabled=b;$("btn-clear").disabled=b}
 $("media-file").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f) return;
