@@ -37,6 +37,7 @@ p{margin:0}
 .hero::after{content:"";position:absolute;z-index:-1;right:4%;top:30px;width:120px;height:110px;background-image:radial-gradient(var(--court) 1.6px,transparent 2px);background-size:16px 16px;opacity:.35}
 .hero-shuttle{width:46px;height:46px;transform:rotate(-24deg)}
 h1 .accent{color:var(--cork)}
+.app-ver{font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--muted);vertical-align:super;margin-left:6px}
 @media (max-width:640px){.hero::before{width:70px;height:70px;left:0}.hero::after{width:70px;right:0}}
 .thesis{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:16px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:15px;border:1px solid var(--line);background:var(--surface)}
